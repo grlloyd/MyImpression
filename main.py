@@ -120,7 +120,8 @@ class MyImpressionApp:
                 "display_time": 10,
                 "random_order": False,
                 "supported_formats": ["jpg", "jpeg", "png", "webp"],
-                "background_color": "white"
+                "background_color": "white",
+                "saturation": 0.5
             },
             "weather": {
                 "api_key": "your_openweathermap_key",

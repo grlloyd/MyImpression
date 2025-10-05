@@ -9,7 +9,7 @@ import random
 import logging
 from pathlib import Path
 from typing import List, Optional
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 class PhotoCycleMode:
@@ -29,6 +29,7 @@ class PhotoCycleMode:
         self.random_order = self.photo_config.get('random_order', False)
         self.supported_formats = self.photo_config.get('supported_formats', ['jpg', 'jpeg', 'png', 'webp'])
         self.background_color = self.photo_config.get('background_color', 'white')
+        self.saturation = self.photo_config.get('saturation', 0.5)
         
         # Photo list and current index
         self.photos = []
@@ -96,8 +97,12 @@ class PhotoCycleMode:
             # Resize to display resolution while maintaining aspect ratio
             img = self._resize_with_aspect_ratio(img, self.inky.resolution)
             
-            # Optimize for the display
-            img = self.display_utils.optimize_for_display(img)
+            # Set image directly with saturation
+            try:
+                self.inky.set_image(img, saturation=self.saturation)
+            except TypeError:
+                # Fallback for older inky versions
+                self.inky.set_image(img)
             
             return img
             
@@ -170,9 +175,6 @@ class PhotoCycleMode:
         except Exception as e:
             self.logger.error(f"Failed to show no photos message: {e}")
     
-    def _show_loading_message(self):
-        """Show loading message while processing image."""
-        self.display_utils.show_loading("Loading Photo...")
     
     def run(self, running_flag):
         """Run the photo cycle mode."""
@@ -196,9 +198,6 @@ class PhotoCycleMode:
                 
                 self.logger.info(f"Displaying photo: {photo_path.name}")
                 
-                # Show loading message
-                self._show_loading_message()
-                
                 # Load and process the image
                 img = self._load_and_process_image(photo_path)
                 if img is None:
@@ -206,9 +205,8 @@ class PhotoCycleMode:
                     time.sleep(5)
                     continue
                 
-                # Display the image
+                # Display the image (already set above)
                 try:
-                    self.inky.set_image(img)
                     self.inky.show()
                 except Exception as e:
                     self.logger.error(f"Failed to display image: {e}")
