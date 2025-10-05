@@ -80,6 +80,7 @@ class MyImpressionApp:
         self.mode_thread = None
         self.mode_running = False  # Flag to control individual mode execution
         self.switch = None  # Button number for mode switch (A=0, B=1, C=2, D=3)
+        self.last_button_press = 0  # Timestamp of last button press
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from JSON file."""
@@ -148,13 +149,28 @@ class MyImpressionApp:
     
     def _on_button_press(self, button: str):
         """Handle button press events."""
+        import time
+        
+        # Debounce button presses (ignore if pressed within 500ms)
+        current_time = time.time()
+        if current_time - self.last_button_press < 0.5:
+            return
+        self.last_button_press = current_time
+        
         # Map button to number (A=0, B=1, C=2, D=3)
         button_map = {"A": 0, "B": 1, "C": 2, "D": 3}
         button_num = button_map.get(button)
         
         if button_num is not None:
-            self.switch = button_num
-            self.logger.info(f"Button {button} pressed (button #{button_num})")
+            # Only set switch if it's different from current target
+            button_modes = ["photo_cycle", "weather", "solar_monitor", "news_feed"]
+            target_mode = button_modes[button_num]
+            
+            if self.current_mode != target_mode:
+                self.switch = button_num
+                self.logger.info(f"Button {button} pressed (button #{button_num}) - switching to {target_mode}")
+            else:
+                self.logger.info(f"Button {button} pressed (button #{button_num}) - already in {target_mode} mode")
             
             # Flash LED to indicate button press
             if self.button_handler and hasattr(self.button_handler, '_flash_led'):
