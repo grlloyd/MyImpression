@@ -81,6 +81,23 @@ The system uses a JSON configuration file (`config.json`) to manage all settings
 }
 ```
 
+## Service Installation (Auto-Start on Boot)
+
+To run MyImpression automatically when the Pi boots:
+
+```bash
+sudo chmod +x install_service.sh
+sudo ./install_service.sh
+```
+
+This installs MyImpression as a systemd service that:
+- Starts automatically on boot
+- Restarts if it crashes
+- Runs in the background
+- Can be managed with standard systemctl commands
+
+See `SERVICE_SETUP.md` for detailed service management instructions.
+
 ## Usage
 
 ### Photo Cycle Mode (Currently Implemented)

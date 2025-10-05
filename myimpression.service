@@ -1,0 +1,22 @@
+[Unit]
+Description=MyImpression Display Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/MyImpression
+Environment=PATH=/home/pi/MyImpression/venv/bin
+ExecStart=/home/pi/MyImpression/venv/bin/python /home/pi/MyImpression/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# GPIO access
+SupplementaryGroups=gpio
+
+[Install]
+WantedBy=multi-user.target
