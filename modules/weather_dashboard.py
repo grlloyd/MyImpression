@@ -40,8 +40,8 @@ class WeatherDashboardMode:
     def _fetch_weather_data(self) -> Optional[Dict[str, Any]]:
         """Fetch current weather and forecast data from Open-Meteo API."""
         try:
-            # Current weather parameters
-            current_params = {
+            # Combined parameters for current, hourly, and daily data
+            params = {
                 "latitude": self.latitude,
                 "longitude": self.longitude,
                 "current": [
@@ -54,13 +54,12 @@ class WeatherDashboardMode:
                     "wind_speed_10m",
                     "wind_direction_10m"
                 ],
-                "timezone": "auto"
-            }
-            
-            # Forecast parameters (next 7 days)
-            forecast_params = {
-                "latitude": self.latitude,
-                "longitude": self.longitude,
+                "hourly": [
+                    "temperature_2m",
+                    "weather_code",
+                    "precipitation",
+                    "wind_speed_10m"
+                ],
                 "daily": [
                     "weather_code",
                     "temperature_2m_max",
@@ -71,22 +70,17 @@ class WeatherDashboardMode:
                 "timezone": "auto"
             }
             
-            # Fetch current weather
-            current_url = f"{self.api_base}/forecast"
-            current_response = requests.get(current_url, params=current_params, timeout=10)
-            current_response.raise_for_status()
-            current_data = current_response.json()
-            
-            # Fetch forecast
-            forecast_url = f"{self.api_base}/forecast"
-            forecast_response = requests.get(forecast_url, params=forecast_params, timeout=10)
-            forecast_response.raise_for_status()
-            forecast_data = forecast_response.json()
+            # Fetch all weather data in one request
+            url = f"{self.api_base}/forecast"
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
             
             # Combine data
             weather_data = {
-                "current": current_data.get("current", {}),
-                "forecast": forecast_data.get("daily", {}),
+                "current": data.get("current", {}),
+                "hourly": data.get("hourly", {}),
+                "daily": data.get("daily", {}),
                 "location": self.location,
                 "timestamp": time.time()
             }
@@ -193,94 +187,112 @@ class WeatherDashboardMode:
             return img
         
         current = self.weather_data.get("current", {})
-        forecast = self.weather_data.get("forecast", {})
+        hourly = self.weather_data.get("hourly", {})
+        daily = self.weather_data.get("daily", {})
         
         # Header
-        y_pos = 20
+        y_pos = 15
         self.display_utils.draw_text_centered(
             draw, f"Weather - {self.location}", 
             y_pos, 
-            self.display_utils.get_font('large', 20), 
+            self.display_utils.get_font('medium', 16), 
             self.display_utils.BLUE
         )
         
-        # Current weather
-        y_pos += 50
+        # Current weather (compact)
+        y_pos += 35
         temp = current.get("temperature_2m", 0)
         weather_code = current.get("weather_code", 0)
         weather_icon = self._get_weather_icon(weather_code)
         weather_desc = self._get_weather_description(weather_code)
         
-        # Temperature (large)
+        # Current temperature and description
         self.display_utils.draw_text_centered(
             draw, f"{weather_icon} {self._format_temperature(temp)}", 
             y_pos, 
-            self.display_utils.get_font('large', 32), 
+            self.display_utils.get_font('large', 24), 
             self.display_utils.BLACK
         )
         
-        # Weather description
-        y_pos += 40
+        y_pos += 25
         self.display_utils.draw_text_centered(
             draw, weather_desc, 
             y_pos, 
-            self.display_utils.get_font('medium', 16), 
+            self.display_utils.get_font('small', 12), 
             self.display_utils.BLACK
         )
         
-        # Additional current conditions
-        y_pos += 60
+        # Current conditions (compact)
+        y_pos += 25
         humidity = current.get("relative_humidity_2m", 0)
         wind_speed = current.get("wind_speed_10m", 0)
         precipitation = current.get("precipitation", 0)
         
-        # Two-column layout for additional info
-        left_x = self.inky.width // 4
-        right_x = 3 * self.inky.width // 4
-        
-        # Left column
+        conditions_text = f"H: {humidity:.0f}% | W: {self._format_wind_speed(wind_speed)} | P: {precipitation:.1f}mm"
         self.display_utils.draw_text_centered(
-            draw, f"Humidity: {humidity:.0f}%", 
+            draw, conditions_text, 
             y_pos, 
-            self.display_utils.get_font('small', 14), 
+            self.display_utils.get_font('small', 10), 
             self.display_utils.BLACK
         )
         
+        # 12-Hour Forecast
+        y_pos += 40
         self.display_utils.draw_text_centered(
-            draw, f"Wind: {self._format_wind_speed(wind_speed)}", 
-            y_pos + 25, 
-            self.display_utils.get_font('small', 14), 
-            self.display_utils.BLACK
-        )
-        
-        # Right column
-        self.display_utils.draw_text_centered(
-            draw, f"Precip: {precipitation:.1f}mm", 
+            draw, "Next 12 Hours", 
             y_pos, 
-            self.display_utils.get_font('small', 14), 
-            self.display_utils.BLACK
-        )
-        
-        # Forecast section (next 3 days)
-        y_pos += 80
-        self.display_utils.draw_text_centered(
-            draw, "3-Day Forecast", 
-            y_pos, 
-            self.display_utils.get_font('medium', 16), 
+            self.display_utils.get_font('small', 12), 
             self.display_utils.BLUE
         )
         
-        # Forecast days
-        forecast_days = forecast.get("time", [])[:3]
-        forecast_max = forecast.get("temperature_2m_max", [])[:3]
-        forecast_min = forecast.get("temperature_2m_min", [])[:3]
-        forecast_codes = forecast.get("weather_code", [])[:3]
+        # Get hourly data for next 12 hours
+        hourly_times = hourly.get("time", [])[:12]
+        hourly_temps = hourly.get("temperature_2m", [])[:12]
+        hourly_codes = hourly.get("weather_code", [])[:12]
         
-        y_pos += 30
-        for i, (day, max_temp, min_temp, code) in enumerate(zip(forecast_days, forecast_max, forecast_min, forecast_codes)):
-            if i >= 3:  # Limit to 3 days
+        y_pos += 20
+        for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
+            if i >= 6:  # Show only 6 hours to fit on screen
                 break
                 
+            # Parse time
+            try:
+                time_obj = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                hour_str = time_obj.strftime('%H:%M')
+            except:
+                hour_str = f"H{i+1}"
+            
+            # Weather icon
+            icon = self._get_weather_icon(code)
+            
+            # Hour info
+            hour_text = f"{hour_str} {icon} {self._format_temperature(temp)}"
+            
+            # Two columns for hourly forecast
+            x_pos = (self.inky.width // 2) * (i % 2) + 50
+            y_hour = y_pos + (i // 2) * 20
+            
+            draw.text((x_pos, y_hour), hour_text, 
+                     font=self.display_utils.get_font('small', 10), 
+                     fill=self.display_utils.BLACK)
+        
+        # 5-Day Forecast
+        y_pos += 80
+        self.display_utils.draw_text_centered(
+            draw, "5-Day Forecast", 
+            y_pos, 
+            self.display_utils.get_font('small', 12), 
+            self.display_utils.BLUE
+        )
+        
+        # Get daily data for next 5 days
+        daily_times = daily.get("time", [])[:5]
+        daily_max = daily.get("temperature_2m_max", [])[:5]
+        daily_min = daily.get("temperature_2m_min", [])[:5]
+        daily_codes = daily.get("weather_code", [])[:5]
+        
+        y_pos += 20
+        for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
             # Parse date
             try:
                 date_obj = datetime.fromisoformat(day.replace('Z', '+00:00'))
@@ -297,11 +309,11 @@ class WeatherDashboardMode:
             self.display_utils.draw_text_centered(
                 draw, day_text, 
                 y_pos, 
-                self.display_utils.get_font('small', 12), 
+                self.display_utils.get_font('small', 10), 
                 self.display_utils.BLACK
             )
             
-            y_pos += 25
+            y_pos += 18
         
         # Last updated timestamp
         if self.weather_data.get("timestamp"):
@@ -309,8 +321,8 @@ class WeatherDashboardMode:
             time_str = update_time.strftime("%H:%M")
             self.display_utils.draw_text_centered(
                 draw, f"Updated: {time_str}", 
-                self.inky.height - 20, 
-                self.display_utils.get_font('small', 10), 
+                self.inky.height - 15, 
+                self.display_utils.get_font('small', 8), 
                 self.display_utils.BLACK
             )
         
