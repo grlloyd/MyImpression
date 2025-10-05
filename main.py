@@ -68,6 +68,13 @@ class MyImpressionApp:
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
+        # Preload weather icons for better performance
+        try:
+            self.modes["weather"].icon_manager.preload_icons()
+            self.logger.info("Weather icons preloaded successfully")
+        except Exception as e:
+            self.logger.warning(f"Failed to preload weather icons: {e}")
+        
         # Initialize button handler
         if GPIO_AVAILABLE:
             self.button_handler = ButtonHandler(self.config, self._on_button_press)

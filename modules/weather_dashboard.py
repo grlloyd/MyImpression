@@ -10,6 +10,7 @@ import requests
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 from PIL import Image, ImageDraw, ImageFont
+from .weather_icons import WeatherIconManager
 
 
 class WeatherDashboardMode:
@@ -37,6 +38,9 @@ class WeatherDashboardMode:
         
         # Open-Meteo API base URL
         self.api_base = "https://api.open-meteo.com/v1"
+        
+        # Initialize weather icon manager
+        self.icon_manager = WeatherIconManager()
     
     def _fetch_weather_data(self) -> Optional[Dict[str, Any]]:
         """Fetch current weather and forecast data from Open-Meteo API."""
@@ -100,29 +104,6 @@ class WeatherDashboardMode:
             self.logger.error(f"Unexpected error fetching weather data: {e}")
             return None
     
-    def _get_weather_icon(self, weather_code: int) -> str:
-        """Get weather icon based on weather code."""
-        # WMO Weather interpretation codes
-        if weather_code in [0]:
-            return "☀️"  # Clear sky
-        elif weather_code in [1, 2, 3]:
-            return "⛅"  # Mainly clear, partly cloudy, overcast
-        elif weather_code in [45, 48]:
-            return "🌫️"  # Fog
-        elif weather_code in [51, 53, 55, 56, 57]:
-            return "🌦️"  # Drizzle
-        elif weather_code in [61, 63, 65, 66, 67]:
-            return "🌧️"  # Rain
-        elif weather_code in [71, 73, 75, 77]:
-            return "🌨️"  # Snow
-        elif weather_code in [80, 81, 82]:
-            return "🌦️"  # Rain showers
-        elif weather_code in [85, 86]:
-            return "🌨️"  # Snow showers
-        elif weather_code in [95, 96, 99]:
-            return "⛈️"  # Thunderstorm
-        else:
-            return "❓"  # Unknown
     
     def _get_weather_description(self, weather_code: int) -> str:
         """Get weather description based on weather code."""
@@ -171,8 +152,9 @@ class WeatherDashboardMode:
             return f"{speed:.1f} mph"
     
     def _create_weather_display(self) -> Image.Image:
-        """Create the weather display image."""
-        img = self.display_utils.create_image_with_palette()
+        """Create the weather display image with white background and 3-section layout."""
+        # Create image with white background
+        img = self.display_utils.create_blank_image(self.display_utils.WHITE)
         draw = ImageDraw.Draw(img)
         
         if not self.weather_data:
@@ -195,40 +177,87 @@ class WeatherDashboardMode:
         hourly = self.weather_data.get("hourly", {})
         daily = self.weather_data.get("daily", {})
         
-        # Header
-        y_pos = 15
+        # Calculate section heights (divide screen into thirds)
+        section_height = self.inky.height // 3
+        current_section = 0
+        hourly_section = section_height
+        daily_section = section_height * 2
+        
+        # === TOP SECTION: CURRENT WEATHER ===
+        self._draw_current_weather(draw, current, current_section, section_height)
+        
+        # === MIDDLE SECTION: 12-HOUR FORECAST ===
+        self._draw_hourly_forecast(draw, hourly, hourly_section, section_height)
+        
+        # === BOTTOM SECTION: 5-DAY FORECAST ===
+        self._draw_daily_forecast(draw, daily, daily_section, section_height)
+        
+        # Last updated timestamp
+        if self.weather_data.get("timestamp"):
+            update_time = datetime.fromtimestamp(self.weather_data["timestamp"])
+            time_str = update_time.strftime("%H:%M")
+            self.display_utils.draw_text_centered(
+                draw, f"Updated: {time_str}", 
+                self.inky.height - 10, 
+                self.display_utils.get_font('small', 8), 
+                self.display_utils.BLACK
+            )
+        
+        return img
+    
+    def _draw_current_weather(self, draw: ImageDraw.Draw, current: dict, start_y: int, height: int):
+        """Draw current weather section."""
+        center_y = start_y + height // 2
+        
+        # Location header
         self.display_utils.draw_text_centered(
-            draw, f"Weather - {self.location}", 
-            y_pos, 
-            self.display_utils.get_font('medium', 16), 
+            draw, f"{self.location}", 
+            start_y + 10, 
+            self.display_utils.get_font('medium', 14), 
             self.display_utils.BLUE
         )
         
-        # Current weather (compact)
-        y_pos += 35
+        # Current temperature and weather icon
         temp = current.get("temperature_2m", 0)
         weather_code = current.get("weather_code", 0)
-        weather_icon = self._get_weather_icon(weather_code)
         weather_desc = self._get_weather_description(weather_code)
         
-        # Current temperature and description
+        # Get weather icon
+        icon_img = self.icon_manager.get_icon_image(weather_code, (40, 40))
+        
+        # Draw temperature
+        temp_text = self._format_temperature(temp)
         self.display_utils.draw_text_centered(
-            draw, f"{weather_icon} {self._format_temperature(temp)}", 
-            y_pos, 
-            self.display_utils.get_font('large', 24), 
+            draw, temp_text, 
+            center_y - 10, 
+            self.display_utils.get_font('large', 32), 
             self.display_utils.BLACK
         )
         
-        y_pos += 25
+        # Draw weather icon if available
+        if icon_img:
+            icon_x = (self.inky.width - 40) // 2
+            icon_y = center_y - 30
+            # Convert icon to display format and paste
+            try:
+                # Create a temporary image for the icon
+                icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
+                icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
+                # Paste the icon onto main image
+                img = draw._image
+                img.paste(icon_display, (0, 0))
+            except Exception as e:
+                self.logger.warning(f"Failed to draw weather icon: {e}")
+        
+        # Weather description
         self.display_utils.draw_text_centered(
             draw, weather_desc, 
-            y_pos, 
+            center_y + 25, 
             self.display_utils.get_font('small', 12), 
             self.display_utils.BLACK
         )
         
-        # Current conditions (compact)
-        y_pos += 25
+        # Current conditions
         humidity = current.get("relative_humidity_2m", 0)
         wind_speed = current.get("wind_speed_10m", 0)
         precipitation = current.get("precipitation", 0)
@@ -236,16 +265,17 @@ class WeatherDashboardMode:
         conditions_text = f"H: {humidity:.0f}% | W: {self._format_wind_speed(wind_speed)} | P: {precipitation:.1f}mm"
         self.display_utils.draw_text_centered(
             draw, conditions_text, 
-            y_pos, 
+            start_y + height - 15, 
             self.display_utils.get_font('small', 10), 
             self.display_utils.BLACK
         )
-        
-        # 12-Hour Forecast
-        y_pos += 40
+    
+    def _draw_hourly_forecast(self, draw: ImageDraw.Draw, hourly: dict, start_y: int, height: int):
+        """Draw 12-hour forecast section."""
+        # Section header
         self.display_utils.draw_text_centered(
-            draw, "Next 12 Hours", 
-            y_pos, 
+            draw, "12-Hour Forecast", 
+            start_y + 5, 
             self.display_utils.get_font('small', 12), 
             self.display_utils.BLUE
         )
@@ -255,38 +285,23 @@ class WeatherDashboardMode:
         hourly_temps = hourly.get("temperature_2m", [])[:12]
         hourly_codes = hourly.get("weather_code", [])[:12]
         
-        # Debug: Log if we have data
-        if not hourly_times:
-            self.logger.warning("No hourly time data available")
-        if not hourly_temps:
-            self.logger.warning("No hourly temperature data available")
-        if not hourly_codes:
-            self.logger.warning("No hourly weather code data available")
-        
-        # Debug: Log actual data values
-        self.logger.info(f"Hourly data: {len(hourly_times)} times, {len(hourly_temps)} temps, {len(hourly_codes)} codes")
-        if hourly_times:
-            self.logger.info(f"First hourly time: {hourly_times[0]}")
-        if hourly_temps:
-            self.logger.info(f"First hourly temp: {hourly_temps[0]}")
-        if hourly_codes:
-            self.logger.info(f"First hourly code: {hourly_codes[0]}")
-        
-        y_pos += 20
         if hourly_times and hourly_temps and hourly_codes:
-            # Add test text to verify display is working
-            self.display_utils.draw_text_centered(
-                draw, f"TEST: {len(hourly_times)} hours available", 
-                y_pos, 
-                self.display_utils.get_font('small', 10), 
-                self.display_utils.BLUE
-            )
-            y_pos += 20
+            # Calculate layout for 12 hours in 2 rows of 6
+            items_per_row = 6
+            item_width = self.inky.width // items_per_row
+            row_height = (height - 30) // 2  # Leave space for header
             
             for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
-                if i >= 6:  # Show only 6 hours to fit on screen
+                if i >= 12:  # Limit to 12 hours
                     break
-                    
+                
+                # Calculate position
+                col = i % items_per_row
+                row = i // items_per_row
+                
+                x = col * item_width + item_width // 2
+                y = start_y + 25 + row * row_height
+                
                 # Parse time
                 try:
                     time_obj = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
@@ -294,33 +309,46 @@ class WeatherDashboardMode:
                 except:
                     hour_str = f"H{i+1}"
                 
-                # Weather icon
-                icon = self._get_weather_icon(code)
+                # Draw time
+                draw.text((x - 20, y - 15), hour_str, 
+                         font=self.display_utils.get_font('small', 8), 
+                         fill=self.display_utils.BLACK)
                 
-                # Hour info
-                hour_text = f"{hour_str} {icon} {self._format_temperature(temp)}"
+                # Draw weather icon
+                icon_img = self.icon_manager.get_icon_image(code, (20, 20))
+                if icon_img:
+                    try:
+                        icon_x = x - 10
+                        icon_y = y - 5
+                        # Create temporary image for icon
+                        icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
+                        icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
+                        # Paste onto main image
+                        img = draw._image
+                        img.paste(icon_display, (0, 0))
+                    except Exception as e:
+                        self.logger.warning(f"Failed to draw hourly icon: {e}")
                 
-                # Two columns for hourly forecast
-                x_pos = (self.inky.width // 2) * (i % 2) + 50
-                y_hour = y_pos + (i // 2) * 20
-                
-                draw.text((x_pos, y_hour), hour_text, 
-                         font=self.display_utils.get_font('small', 10), 
+                # Draw temperature
+                temp_text = self._format_temperature(temp)
+                draw.text((x - 15, y + 10), temp_text, 
+                         font=self.display_utils.get_font('small', 8), 
                          fill=self.display_utils.BLACK)
         else:
             # Show error message if no hourly data
             self.display_utils.draw_text_centered(
                 draw, "No hourly data available", 
-                y_pos, 
+                start_y + height // 2, 
                 self.display_utils.get_font('small', 10), 
                 self.display_utils.RED
             )
-        
-        # 5-Day Forecast
-        y_pos += 80
+    
+    def _draw_daily_forecast(self, draw: ImageDraw.Draw, daily: dict, start_y: int, height: int):
+        """Draw 5-day forecast section."""
+        # Section header
         self.display_utils.draw_text_centered(
             draw, "5-Day Forecast", 
-            y_pos, 
+            start_y + 5, 
             self.display_utils.get_font('small', 12), 
             self.display_utils.BLUE
         )
@@ -331,39 +359,13 @@ class WeatherDashboardMode:
         daily_min = daily.get("temperature_2m_min", [])[:5]
         daily_codes = daily.get("weather_code", [])[:5]
         
-        # Debug: Log if we have data
-        if not daily_times:
-            self.logger.warning("No daily time data available")
-        if not daily_max:
-            self.logger.warning("No daily max temperature data available")
-        if not daily_min:
-            self.logger.warning("No daily min temperature data available")
-        if not daily_codes:
-            self.logger.warning("No daily weather code data available")
-        
-        # Debug: Log actual data values
-        self.logger.info(f"Daily data: {len(daily_times)} times, {len(daily_max)} max temps, {len(daily_min)} min temps, {len(daily_codes)} codes")
-        if daily_times:
-            self.logger.info(f"First daily time: {daily_times[0]}")
-        if daily_max:
-            self.logger.info(f"First daily max temp: {daily_max[0]}")
-        if daily_min:
-            self.logger.info(f"First daily min temp: {daily_min[0]}")
-        if daily_codes:
-            self.logger.info(f"First daily code: {daily_codes[0]}")
-        
-        y_pos += 20
         if daily_times and daily_max and daily_min and daily_codes:
-            # Add test text to verify display is working
-            self.display_utils.draw_text_centered(
-                draw, f"TEST: {len(daily_times)} days available", 
-                y_pos, 
-                self.display_utils.get_font('small', 10), 
-                self.display_utils.BLUE
-            )
-            y_pos += 20
+            # Calculate layout for 5 days
+            item_height = (height - 30) // 5  # Leave space for header
             
             for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
+                y = start_y + 25 + i * item_height
+                
                 # Parse date
                 try:
                     date_obj = datetime.fromisoformat(day.replace('Z', '+00:00'))
@@ -371,41 +373,39 @@ class WeatherDashboardMode:
                 except:
                     day_name = f"Day {i+1}"
                 
-                # Weather icon
-                icon = self._get_weather_icon(code)
+                # Draw day name
+                draw.text((10, y - 5), day_name, 
+                         font=self.display_utils.get_font('small', 10), 
+                         fill=self.display_utils.BLACK)
                 
-                # Day info
-                day_text = f"{day_name} {icon} {self._format_temperature(max_temp)}/{self._format_temperature(min_temp)}"
+                # Draw weather icon
+                icon_img = self.icon_manager.get_icon_image(code, (24, 24))
+                if icon_img:
+                    try:
+                        icon_x = 80
+                        icon_y = y - 12
+                        # Create temporary image for icon
+                        icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
+                        icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
+                        # Paste onto main image
+                        img = draw._image
+                        img.paste(icon_display, (0, 0))
+                    except Exception as e:
+                        self.logger.warning(f"Failed to draw daily icon: {e}")
                 
-                self.display_utils.draw_text_centered(
-                    draw, day_text, 
-                    y_pos, 
-                    self.display_utils.get_font('small', 10), 
-                    self.display_utils.BLACK
-                )
-                
-                y_pos += 18
+                # Draw temperatures
+                temp_text = f"{self._format_temperature(max_temp)}/{self._format_temperature(min_temp)}"
+                draw.text((120, y - 5), temp_text, 
+                         font=self.display_utils.get_font('small', 10), 
+                         fill=self.display_utils.BLACK)
         else:
             # Show error message if no daily data
             self.display_utils.draw_text_centered(
                 draw, "No daily data available", 
-                y_pos, 
+                start_y + height // 2, 
                 self.display_utils.get_font('small', 10), 
                 self.display_utils.RED
             )
-        
-        # Last updated timestamp
-        if self.weather_data.get("timestamp"):
-            update_time = datetime.fromtimestamp(self.weather_data["timestamp"])
-            time_str = update_time.strftime("%H:%M")
-            self.display_utils.draw_text_centered(
-                draw, f"Updated: {time_str}", 
-                self.inky.height - 15, 
-                self.display_utils.get_font('small', 8), 
-                self.display_utils.BLACK
-            )
-        
-        return img
     
     def _flash_led_loading(self):
         """Flash LED to indicate data loading."""
