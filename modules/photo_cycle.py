@@ -193,17 +193,33 @@ class PhotoCycleMode:
                 photo_path = self._get_next_photo()
                 if not photo_path:
                     self.logger.warning("No photos available")
-                    time.sleep(5)
+                    # Check running flag during sleep
+                    for _ in range(50):  # 5 seconds in 0.1s increments
+                        if not running_flag():
+                            return
+                        time.sleep(0.1)
                     continue
                 
                 self.logger.info(f"Displaying photo: {photo_path.name}")
+                
+                # Check if we should stop before processing
+                if not running_flag():
+                    return
                 
                 # Load and process the image
                 img = self._load_and_process_image(photo_path)
                 if img is None:
                     self.logger.error(f"Failed to process image: {photo_path}")
-                    time.sleep(5)
+                    # Check running flag during sleep
+                    for _ in range(50):  # 5 seconds in 0.1s increments
+                        if not running_flag():
+                            return
+                        time.sleep(0.1)
                     continue
+                
+                # Check if we should stop before displaying
+                if not running_flag():
+                    return
                 
                 # Display the image (already set above)
                 try:
@@ -219,6 +235,10 @@ class PhotoCycleMode:
                 
             except Exception as e:
                 self.logger.error(f"Error in photo cycle mode: {e}")
-                time.sleep(5)
+                # Check running flag during sleep
+                for _ in range(50):  # 5 seconds in 0.1s increments
+                    if not running_flag():
+                        return
+                    time.sleep(0.1)
         
         self.logger.info("Photo cycle mode stopped")
