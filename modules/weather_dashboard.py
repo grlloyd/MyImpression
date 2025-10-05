@@ -15,11 +15,12 @@ from PIL import Image, ImageDraw, ImageFont
 class WeatherDashboardMode:
     """Weather dashboard mode using Open-Meteo API."""
     
-    def __init__(self, inky_display, config: dict, display_utils):
+    def __init__(self, inky_display, config: dict, display_utils, main_app=None):
         """Initialize weather dashboard mode."""
         self.inky = inky_display
         self.config = config
         self.display_utils = display_utils
+        self.main_app = main_app  # Reference to main app for mode switching
         self.logger = logging.getLogger(__name__)
         
         # Weather configuration
@@ -426,6 +427,10 @@ class WeatherDashboardMode:
         
         while running_flag():
             try:
+                # Check for mode switch before processing
+                if self.main_app and self.main_app.check_and_switch_mode():
+                    return
+                
                 # Check if we need to update weather data
                 current_time = time.time()
                 if (self.weather_data is None or 
@@ -450,6 +455,10 @@ class WeatherDashboardMode:
                         # Flash LED to indicate error
                         self._flash_led_error()
                 
+                # Check for mode switch before displaying
+                if self.main_app and self.main_app.check_and_switch_mode():
+                    return
+                
                 # Create and display weather information
                 weather_img = self._create_weather_display()
                 
@@ -460,8 +469,11 @@ class WeatherDashboardMode:
                 except Exception as e:
                     self.logger.error(f"Failed to display weather: {e}")
                 
-                # Wait before next update
-                time.sleep(60)  # Update every minute
+                # Wait before next update, but check for mode switches more frequently
+                for _ in range(60):  # 60 seconds in 1-second increments
+                    if not running_flag():
+                        break
+                    time.sleep(1)
                 
             except Exception as e:
                 self.logger.error(f"Error in weather dashboard: {e}")

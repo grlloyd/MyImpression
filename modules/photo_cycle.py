@@ -15,11 +15,12 @@ from PIL import Image, ImageDraw
 class PhotoCycleMode:
     """Photo slideshow mode for the display."""
     
-    def __init__(self, inky_display, config: dict, display_utils):
+    def __init__(self, inky_display, config: dict, display_utils, main_app=None):
         """Initialize photo cycle mode."""
         self.inky = inky_display
         self.config = config
         self.display_utils = display_utils
+        self.main_app = main_app  # Reference to main app for mode switching
         self.logger = logging.getLogger(__name__)
         
         # Get photo cycle configuration
@@ -189,6 +190,10 @@ class PhotoCycleMode:
         
         while running_flag():
             try:
+                # Check for mode switch before getting next photo
+                if self.main_app and self.main_app.check_and_switch_mode():
+                    return
+                
                 # Get next photo
                 photo_path = self._get_next_photo()
                 if not photo_path:
@@ -228,10 +233,11 @@ class PhotoCycleMode:
                     self.logger.error(f"Failed to display image: {e}")
                     continue
                 
-                # Wait for the specified display time
+                # Wait for the specified display time, but check for mode switches more frequently
                 start_time = time.time()
                 while running_flag() and (time.time() - start_time) < self.display_time:
                     time.sleep(0.1)
+                    # The main app will handle mode switching when the current display completes
                 
             except Exception as e:
                 self.logger.error(f"Error in photo cycle mode: {e}")

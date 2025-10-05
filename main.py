@@ -62,10 +62,10 @@ class MyImpressionApp:
         
         # Initialize modes
         self.modes = {
-            "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils),
-            "weather": WeatherDashboardMode(self.inky, self.config, self.display_utils),
-            "solar_monitor": SolarMonitorMode(self.inky, self.config, self.display_utils),
-            "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils)
+            "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils, self),
+            "weather": WeatherDashboardMode(self.inky, self.config, self.display_utils, self),
+            "solar_monitor": SolarMonitorMode(self.inky, self.config, self.display_utils, self),
+            "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
         # Initialize button handler
@@ -79,6 +79,7 @@ class MyImpressionApp:
         self.current_mode = None
         self.mode_thread = None
         self.mode_running = False  # Flag to control individual mode execution
+        self.switch = None  # Button number for mode switch (A=0, B=1, C=2, D=3)
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from JSON file."""
@@ -147,17 +148,29 @@ class MyImpressionApp:
     
     def _on_button_press(self, button: str):
         """Handle button press events."""
-        mode_name = self.config["buttons"].get(button)
-        if mode_name and mode_name in self.modes:
-            self.logger.info(f"Button {button} pressed - switching to {mode_name}")
-            self.switch_mode(mode_name)
+        # Map button to number (A=0, B=1, C=2, D=3)
+        button_map = {"A": 0, "B": 1, "C": 2, "D": 3}
+        button_num = button_map.get(button)
+        
+        if button_num is not None:
+            self.switch = button_num
+            self.logger.info(f"Button {button} pressed (button #{button_num})")
+            
+            # Flash LED to indicate button press
+            if self.button_handler and hasattr(self.button_handler, '_flash_led'):
+                self.button_handler._flash_led(0.3)
         else:
-            self.logger.warning(f"No mode configured for button {button}")
+            self.logger.warning(f"Unknown button: {button}")
     
     def switch_mode(self, mode_name: str):
         """Switch to a different display mode."""
         if mode_name not in self.modes:
             self.logger.error(f"Unknown mode: {mode_name}")
+            return
+        
+        # If switching to the same mode, do nothing
+        if self.current_mode == mode_name:
+            self.logger.info(f"Already in {mode_name} mode")
             return
         
         # Stop current mode if running
@@ -205,6 +218,25 @@ class MyImpressionApp:
         
         threading.Thread(target=flash_pattern, daemon=True).start()
     
+    def check_and_switch_mode(self):
+        """Check if mode switch is needed and execute it."""
+        if self.switch is not None:
+            # Map button number to mode name
+            button_modes = ["photo_cycle", "weather", "solar_monitor", "news_feed"]
+            target_mode = button_modes[self.switch]
+            
+            # Check if we need to switch
+            if self.current_mode != target_mode:
+                self.logger.info(f"Switching from {self.current_mode} to {target_mode}")
+                self.switch_mode(target_mode)
+                self.switch = None  # Reset switch flag
+                return True
+            else:
+                # Already in the correct mode, just reset the switch flag
+                self.switch = None
+                return False
+        return False
+    
     def _run_mode(self, mode_name: str):
         """Run the specified mode in a separate thread."""
         try:
@@ -212,7 +244,9 @@ class MyImpressionApp:
             # Pass a lambda that checks both the app running state and mode running state
             def should_continue():
                 return self.running and self.mode_running
+            
             mode.run(should_continue)
+                
         except Exception as e:
             self.logger.error(f"Error in mode {mode_name}: {e}")
             # Show error display
