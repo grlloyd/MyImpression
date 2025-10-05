@@ -178,6 +178,32 @@ class MyImpressionApp:
         )
         self.mode_thread.start()
         self.logger.info(f"Started mode: {mode_name}")
+        
+        # Flash LED to indicate mode change
+        self._indicate_mode_change(mode_name)
+    
+    def _indicate_mode_change(self, mode_name: str):
+        """Flash LED with different patterns for different modes."""
+        if not self.button_handler or not hasattr(self.button_handler, '_flash_led'):
+            return
+        
+        # Different LED patterns for different modes
+        mode_patterns = {
+            "photo_cycle": 1,    # 1 flash
+            "weather": 2,        # 2 flashes
+            "solar_monitor": 3,  # 3 flashes
+            "news_feed": 4       # 4 flashes
+        }
+        
+        flash_count = mode_patterns.get(mode_name, 1)
+        
+        # Flash the LED in a separate thread to avoid blocking
+        def flash_pattern():
+            for _ in range(flash_count):
+                self.button_handler._flash_led(0.2)  # 200ms flash
+                time.sleep(0.1)  # 100ms pause between flashes
+        
+        threading.Thread(target=flash_pattern, daemon=True).start()
     
     def _run_mode(self, mode_name: str):
         """Run the specified mode in a separate thread."""

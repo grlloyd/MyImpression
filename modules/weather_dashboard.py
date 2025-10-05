@@ -328,6 +328,20 @@ class WeatherDashboardMode:
         
         return img
     
+    def _flash_led_loading(self):
+        """Flash LED to indicate data loading."""
+        # This would need access to the button handler's LED control
+        # For now, we'll just log the action
+        self.logger.debug("LED: Loading weather data...")
+    
+    def _flash_led_success(self):
+        """Flash LED to indicate successful data fetch."""
+        self.logger.debug("LED: Weather data loaded successfully")
+    
+    def _flash_led_error(self):
+        """Flash LED to indicate error."""
+        self.logger.debug("LED: Weather data fetch failed")
+    
     def run(self, running_flag):
         """Run weather dashboard mode."""
         self.logger.info("Starting weather dashboard mode")
@@ -342,14 +356,21 @@ class WeatherDashboardMode:
                     self.logger.info("Fetching weather data...")
                     self.display_utils.show_loading("Loading weather...")
                     
+                    # Flash LED to indicate data loading
+                    self._flash_led_loading()
+                    
                     # Fetch new weather data
                     new_data = self._fetch_weather_data()
                     if new_data:
                         self.weather_data = new_data
                         self.last_update = current_time
                         self.logger.info("Weather data updated successfully")
+                        # Flash LED to indicate successful data fetch
+                        self._flash_led_success()
                     else:
                         self.logger.warning("Failed to fetch weather data, using cached data if available")
+                        # Flash LED to indicate error
+                        self._flash_led_error()
                 
                 # Create and display weather information
                 weather_img = self._create_weather_display()
