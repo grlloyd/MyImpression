@@ -17,18 +17,41 @@ A customizable display system for the 6-color Inky Impression e-ink display (800
 
 ## Installation
 
-1. Install Python dependencies:
+### Quick Start (Recommended)
 ```bash
+chmod +x install.sh
+./install.sh
+```
+
+### Manual Installation
+
+1. Create and activate a virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+2. Install Python dependencies:
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-2. Install the Inky library:
+3. Install the Inky library:
 ```bash
-cd ../inky
-pip install -e .
+# If you have the Inky library in a sibling directory:
+pip install -e ../inky
+
+# Or install from PyPI:
+pip install inky
 ```
 
-3. Configure your settings in `config.json`
+4. Run setup:
+```bash
+python setup.py
+```
+
+5. Configure your settings in `config.json`
 
 ## Configuration
 
@@ -70,7 +93,15 @@ The system uses a JSON configuration file (`config.json`) to manage all settings
 
 ### Running the Application
 
+**Using the run script (recommended):**
 ```bash
+chmod +x run.sh
+./run.sh
+```
+
+**Or manually:**
+```bash
+source venv/bin/activate
 python main.py
 ```
 
