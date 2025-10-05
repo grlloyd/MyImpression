@@ -37,8 +37,17 @@ class MyImpressionApp:
     def __init__(self, config_path: str = "config.json"):
         """Initialize the application with configuration."""
         self.config_path = Path(config_path)
-        self.config = self._load_config()
         self.running = False
+        
+        # Setup logging first
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        self.logger = logging.getLogger(__name__)
+        
+        # Load configuration after logger is set up
+        self.config = self._load_config()
         
         # Initialize display
         try:
@@ -69,13 +78,6 @@ class MyImpressionApp:
         # Current mode
         self.current_mode = None
         self.mode_thread = None
-        
-        # Setup logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        self.logger = logging.getLogger(__name__)
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from JSON file."""
