@@ -196,6 +196,9 @@ class MyImpressionApp:
         """Start the application."""
         self.logger.info("Starting MyImpression application")
         
+        # Set the application as running
+        self.running = True
+        
         # Create necessary directories
         Path("data/photos").mkdir(parents=True, exist_ok=True)
         Path("data/cache").mkdir(parents=True, exist_ok=True)
