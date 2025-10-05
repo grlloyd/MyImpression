@@ -1,16 +1,19 @@
 """
 Weather Dashboard Mode
-Displays current weather and forecast using Open-Meteo API.
+Displays current weather and forecast using Open-Meteo API with HTML rendering.
 """
 
 import json
 import time
 import logging
 import requests
+import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, Optional
 from PIL import Image, ImageDraw, ImageFont
 from .weather_icons import WeatherIconManager
+from .html_weather_renderer import HTMLWeatherRenderer, FallbackHTMLWeatherRenderer
 
 
 class WeatherDashboardMode:
@@ -41,6 +44,18 @@ class WeatherDashboardMode:
         
         # Initialize weather icon manager
         self.icon_manager = WeatherIconManager()
+        
+        # Initialize HTML renderer
+        try:
+            self.html_renderer = HTMLWeatherRenderer()
+            self.logger.info("HTML weather renderer initialized successfully")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize HTML renderer, using fallback: {e}")
+            self.html_renderer = FallbackHTMLWeatherRenderer()
+        
+        # Cache for rendered images
+        self.rendered_image_cache = None
+        self.last_render_time = 0
     
     def _fetch_weather_data(self) -> Optional[Dict[str, Any]]:
         """Fetch current weather and forecast data from Open-Meteo API."""
@@ -152,13 +167,11 @@ class WeatherDashboardMode:
             return f"{speed:.1f} mph"
     
     def _create_weather_display(self) -> Image.Image:
-        """Create the weather display image with white background and 3-section layout."""
-        # Create image with white background
-        img = self.display_utils.create_blank_image(self.display_utils.WHITE)
-        draw = ImageDraw.Draw(img)
-        
+        """Create the weather display using HTML rendering."""
         if not self.weather_data:
             # Show error if no data
+            img = self.display_utils.create_blank_image(self.display_utils.WHITE)
+            draw = ImageDraw.Draw(img)
             self.display_utils.draw_text_centered(
                 draw, "Weather Data Unavailable", 
                 self.inky.height // 2 - 50, 
@@ -173,239 +186,101 @@ class WeatherDashboardMode:
             )
             return img
         
+        # Check if we have a cached rendered image
+        current_time = time.time()
+        if (self.rendered_image_cache and 
+            current_time - self.last_render_time < 300):  # Cache for 5 minutes
+            return self.rendered_image_cache
+        
+        # Create output directory for rendered images
+        output_dir = Path("data/cache/weather")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate PNG from HTML
+        png_path = output_dir / "weather_dashboard.png"
+        html_path = output_dir / "weather_dashboard.html"
+        
+        try:
+            # Try to render as PNG first
+            if hasattr(self.html_renderer, 'render_weather_dashboard'):
+                success = self.html_renderer.render_weather_dashboard(self.weather_data, str(png_path))
+                if success and png_path.exists():
+                    # Load the rendered PNG
+                    img = Image.open(png_path)
+                    # Convert to display format if needed
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    # Resize to display dimensions if needed
+                    if img.size != (self.inky.width, self.inky.height):
+                        img = img.resize((self.inky.width, self.inky.height), Image.Resampling.LANCZOS)
+                    
+                    # Cache the image
+                    self.rendered_image_cache = img
+                    self.last_render_time = current_time
+                    return img
+            
+            # Fallback: create HTML file only
+            self.logger.info("Creating HTML weather dashboard (PNG capture not available)")
+            if hasattr(self.html_renderer, 'render_weather_dashboard'):
+                self.html_renderer.render_weather_dashboard(self.weather_data, str(html_path))
+            
+            # Create a simple fallback display
+            return self._create_fallback_display()
+            
+        except Exception as e:
+            self.logger.error(f"Failed to render HTML weather dashboard: {e}")
+            return self._create_fallback_display()
+    
+    def _create_fallback_display(self) -> Image.Image:
+        """Create a simple fallback display when HTML rendering fails."""
+        img = self.display_utils.create_blank_image(self.display_utils.WHITE)
+        draw = ImageDraw.Draw(img)
+        
         current = self.weather_data.get("current", {})
-        hourly = self.weather_data.get("hourly", {})
-        daily = self.weather_data.get("daily", {})
         
-        # Calculate section heights (divide screen into thirds)
-        section_height = self.inky.height // 3
-        current_section = 0
-        hourly_section = section_height
-        daily_section = section_height * 2
+        # Simple current weather display
+        temp = current.get("temperature_2m", 0)
+        weather_code = current.get("weather_code", 0)
+        weather_desc = self._get_weather_description(weather_code)
         
-        # === TOP SECTION: CURRENT WEATHER ===
-        self._draw_current_weather(draw, current, current_section, section_height)
+        # Location
+        self.display_utils.draw_text_centered(
+            draw, f"{self.location}", 
+            20, 
+            self.display_utils.get_font('medium', 16), 
+            self.display_utils.BLUE
+        )
         
-        # === MIDDLE SECTION: 12-HOUR FORECAST ===
-        self._draw_hourly_forecast(draw, hourly, hourly_section, section_height)
+        # Temperature
+        temp_text = self._format_temperature(temp)
+        self.display_utils.draw_text_centered(
+            draw, temp_text, 
+            self.inky.height // 2 - 20, 
+            self.display_utils.get_font('large', 48), 
+            self.display_utils.BLACK
+        )
         
-        # === BOTTOM SECTION: 5-DAY FORECAST ===
-        self._draw_daily_forecast(draw, daily, daily_section, section_height)
+        # Weather description
+        self.display_utils.draw_text_centered(
+            draw, weather_desc, 
+            self.inky.height // 2 + 30, 
+            self.display_utils.get_font('medium', 14), 
+            self.display_utils.BLACK
+        )
         
-        # Last updated timestamp
+        # Last updated
         if self.weather_data.get("timestamp"):
             update_time = datetime.fromtimestamp(self.weather_data["timestamp"])
             time_str = update_time.strftime("%H:%M")
             self.display_utils.draw_text_centered(
                 draw, f"Updated: {time_str}", 
-                self.inky.height - 10, 
-                self.display_utils.get_font('small', 8), 
+                self.inky.height - 20, 
+                self.display_utils.get_font('small', 10), 
                 self.display_utils.BLACK
             )
         
         return img
     
-    def _draw_current_weather(self, draw: ImageDraw.Draw, current: dict, start_y: int, height: int):
-        """Draw current weather section."""
-        center_y = start_y + height // 2
-        
-        # Location header
-        self.display_utils.draw_text_centered(
-            draw, f"{self.location}", 
-            start_y + 10, 
-            self.display_utils.get_font('medium', 14), 
-            self.display_utils.BLUE
-        )
-        
-        # Current temperature and weather icon
-        temp = current.get("temperature_2m", 0)
-        weather_code = current.get("weather_code", 0)
-        weather_desc = self._get_weather_description(weather_code)
-        
-        # Get weather icon
-        icon_img = self.icon_manager.get_icon_image(weather_code, (40, 40))
-        
-        # Draw temperature
-        temp_text = self._format_temperature(temp)
-        self.display_utils.draw_text_centered(
-            draw, temp_text, 
-            center_y - 10, 
-            self.display_utils.get_font('large', 32), 
-            self.display_utils.BLACK
-        )
-        
-        # Draw weather icon if available
-        if icon_img:
-            icon_x = (self.inky.width - 40) // 2
-            icon_y = center_y - 30
-            # Convert icon to display format and paste
-            try:
-                # Create a temporary image for the icon
-                icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
-                icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
-                # Paste the icon onto main image
-                img = draw._image
-                img.paste(icon_display, (0, 0))
-            except Exception as e:
-                self.logger.warning(f"Failed to draw weather icon: {e}")
-        
-        # Weather description
-        self.display_utils.draw_text_centered(
-            draw, weather_desc, 
-            center_y + 25, 
-            self.display_utils.get_font('small', 12), 
-            self.display_utils.BLACK
-        )
-        
-        # Current conditions
-        humidity = current.get("relative_humidity_2m", 0)
-        wind_speed = current.get("wind_speed_10m", 0)
-        precipitation = current.get("precipitation", 0)
-        
-        conditions_text = f"H: {humidity:.0f}% | W: {self._format_wind_speed(wind_speed)} | P: {precipitation:.1f}mm"
-        self.display_utils.draw_text_centered(
-            draw, conditions_text, 
-            start_y + height - 15, 
-            self.display_utils.get_font('small', 10), 
-            self.display_utils.BLACK
-        )
-    
-    def _draw_hourly_forecast(self, draw: ImageDraw.Draw, hourly: dict, start_y: int, height: int):
-        """Draw 12-hour forecast section."""
-        # Section header
-        self.display_utils.draw_text_centered(
-            draw, "12-Hour Forecast", 
-            start_y + 5, 
-            self.display_utils.get_font('small', 12), 
-            self.display_utils.BLUE
-        )
-        
-        # Get hourly data for next 12 hours
-        hourly_times = hourly.get("time", [])[:12]
-        hourly_temps = hourly.get("temperature_2m", [])[:12]
-        hourly_codes = hourly.get("weather_code", [])[:12]
-        
-        if hourly_times and hourly_temps and hourly_codes:
-            # Calculate layout for 12 hours in 2 rows of 6
-            items_per_row = 6
-            item_width = self.inky.width // items_per_row
-            row_height = (height - 30) // 2  # Leave space for header
-            
-            for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
-                if i >= 12:  # Limit to 12 hours
-                    break
-                
-                # Calculate position
-                col = i % items_per_row
-                row = i // items_per_row
-                
-                x = col * item_width + item_width // 2
-                y = start_y + 25 + row * row_height
-                
-                # Parse time
-                try:
-                    time_obj = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
-                    hour_str = time_obj.strftime('%H:%M')
-                except:
-                    hour_str = f"H{i+1}"
-                
-                # Draw time
-                draw.text((x - 20, y - 15), hour_str, 
-                         font=self.display_utils.get_font('small', 8), 
-                         fill=self.display_utils.BLACK)
-                
-                # Draw weather icon
-                icon_img = self.icon_manager.get_icon_image(code, (20, 20))
-                if icon_img:
-                    try:
-                        icon_x = x - 10
-                        icon_y = y - 5
-                        # Create temporary image for icon
-                        icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
-                        icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
-                        # Paste onto main image
-                        img = draw._image
-                        img.paste(icon_display, (0, 0))
-                    except Exception as e:
-                        self.logger.warning(f"Failed to draw hourly icon: {e}")
-                
-                # Draw temperature
-                temp_text = self._format_temperature(temp)
-                draw.text((x - 15, y + 10), temp_text, 
-                         font=self.display_utils.get_font('small', 8), 
-                         fill=self.display_utils.BLACK)
-        else:
-            # Show error message if no hourly data
-            self.display_utils.draw_text_centered(
-                draw, "No hourly data available", 
-                start_y + height // 2, 
-                self.display_utils.get_font('small', 10), 
-                self.display_utils.RED
-            )
-    
-    def _draw_daily_forecast(self, draw: ImageDraw.Draw, daily: dict, start_y: int, height: int):
-        """Draw 5-day forecast section."""
-        # Section header
-        self.display_utils.draw_text_centered(
-            draw, "5-Day Forecast", 
-            start_y + 5, 
-            self.display_utils.get_font('small', 12), 
-            self.display_utils.BLUE
-        )
-        
-        # Get daily data for next 5 days
-        daily_times = daily.get("time", [])[:5]
-        daily_max = daily.get("temperature_2m_max", [])[:5]
-        daily_min = daily.get("temperature_2m_min", [])[:5]
-        daily_codes = daily.get("weather_code", [])[:5]
-        
-        if daily_times and daily_max and daily_min and daily_codes:
-            # Calculate layout for 5 days
-            item_height = (height - 30) // 5  # Leave space for header
-            
-            for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
-                y = start_y + 25 + i * item_height
-                
-                # Parse date
-                try:
-                    date_obj = datetime.fromisoformat(day.replace('Z', '+00:00'))
-                    day_name = date_obj.strftime('%a')
-                except:
-                    day_name = f"Day {i+1}"
-                
-                # Draw day name
-                draw.text((10, y - 5), day_name, 
-                         font=self.display_utils.get_font('small', 10), 
-                         fill=self.display_utils.BLACK)
-                
-                # Draw weather icon
-                icon_img = self.icon_manager.get_icon_image(code, (24, 24))
-                if icon_img:
-                    try:
-                        icon_x = 80
-                        icon_y = y - 12
-                        # Create temporary image for icon
-                        icon_display = self.display_utils.create_blank_image(self.display_utils.WHITE)
-                        icon_display.paste(icon_img, (icon_x, icon_y), icon_img if icon_img.mode == 'RGBA' else None)
-                        # Paste onto main image
-                        img = draw._image
-                        img.paste(icon_display, (0, 0))
-                    except Exception as e:
-                        self.logger.warning(f"Failed to draw daily icon: {e}")
-                
-                # Draw temperatures
-                temp_text = f"{self._format_temperature(max_temp)}/{self._format_temperature(min_temp)}"
-                draw.text((120, y - 5), temp_text, 
-                         font=self.display_utils.get_font('small', 10), 
-                         fill=self.display_utils.BLACK)
-        else:
-            # Show error message if no daily data
-            self.display_utils.draw_text_centered(
-                draw, "No daily data available", 
-                start_y + height // 2, 
-                self.display_utils.get_font('small', 10), 
-                self.display_utils.RED
-            )
     
     def _flash_led_loading(self):
         """Flash LED to indicate data loading."""
@@ -457,3 +332,8 @@ class WeatherDashboardMode:
         except Exception as e:
             self.logger.error(f"Error in weather dashboard: {e}")
             self.display_utils.show_error(f"Weather Error:\n{str(e)}")
+    
+    def cleanup(self):
+        """Clean up resources."""
+        if hasattr(self, 'html_renderer') and self.html_renderer:
+            self.html_renderer.close()
