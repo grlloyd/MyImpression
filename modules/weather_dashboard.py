@@ -262,6 +262,15 @@ class WeatherDashboardMode:
         if not hourly_codes:
             self.logger.warning("No hourly weather code data available")
         
+        # Debug: Log actual data values
+        self.logger.info(f"Hourly data: {len(hourly_times)} times, {len(hourly_temps)} temps, {len(hourly_codes)} codes")
+        if hourly_times:
+            self.logger.info(f"First hourly time: {hourly_times[0]}")
+        if hourly_temps:
+            self.logger.info(f"First hourly temp: {hourly_temps[0]}")
+        if hourly_codes:
+            self.logger.info(f"First hourly code: {hourly_codes[0]}")
+        
         y_pos += 20
         if hourly_times and hourly_temps and hourly_codes:
             for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
@@ -321,6 +330,17 @@ class WeatherDashboardMode:
             self.logger.warning("No daily min temperature data available")
         if not daily_codes:
             self.logger.warning("No daily weather code data available")
+        
+        # Debug: Log actual data values
+        self.logger.info(f"Daily data: {len(daily_times)} times, {len(daily_max)} max temps, {len(daily_min)} min temps, {len(daily_codes)} codes")
+        if daily_times:
+            self.logger.info(f"First daily time: {daily_times[0]}")
+        if daily_max:
+            self.logger.info(f"First daily max temp: {daily_max[0]}")
+        if daily_min:
+            self.logger.info(f"First daily min temp: {daily_min[0]}")
+        if daily_codes:
+            self.logger.info(f"First daily code: {daily_codes[0]}")
         
         y_pos += 20
         if daily_times and daily_max and daily_min and daily_codes:
