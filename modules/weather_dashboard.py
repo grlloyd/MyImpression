@@ -254,31 +254,48 @@ class WeatherDashboardMode:
         hourly_temps = hourly.get("temperature_2m", [])[:12]
         hourly_codes = hourly.get("weather_code", [])[:12]
         
+        # Debug: Log if we have data
+        if not hourly_times:
+            self.logger.warning("No hourly time data available")
+        if not hourly_temps:
+            self.logger.warning("No hourly temperature data available")
+        if not hourly_codes:
+            self.logger.warning("No hourly weather code data available")
+        
         y_pos += 20
-        for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
-            if i >= 6:  # Show only 6 hours to fit on screen
-                break
+        if hourly_times and hourly_temps and hourly_codes:
+            for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
+                if i >= 6:  # Show only 6 hours to fit on screen
+                    break
+                    
+                # Parse time
+                try:
+                    time_obj = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                    hour_str = time_obj.strftime('%H:%M')
+                except:
+                    hour_str = f"H{i+1}"
                 
-            # Parse time
-            try:
-                time_obj = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
-                hour_str = time_obj.strftime('%H:%M')
-            except:
-                hour_str = f"H{i+1}"
-            
-            # Weather icon
-            icon = self._get_weather_icon(code)
-            
-            # Hour info
-            hour_text = f"{hour_str} {icon} {self._format_temperature(temp)}"
-            
-            # Two columns for hourly forecast
-            x_pos = (self.inky.width // 2) * (i % 2) + 50
-            y_hour = y_pos + (i // 2) * 20
-            
-            draw.text((x_pos, y_hour), hour_text, 
-                     font=self.display_utils.get_font('small', 10), 
-                     fill=self.display_utils.BLACK)
+                # Weather icon
+                icon = self._get_weather_icon(code)
+                
+                # Hour info
+                hour_text = f"{hour_str} {icon} {self._format_temperature(temp)}"
+                
+                # Two columns for hourly forecast
+                x_pos = (self.inky.width // 2) * (i % 2) + 50
+                y_hour = y_pos + (i // 2) * 20
+                
+                draw.text((x_pos, y_hour), hour_text, 
+                         font=self.display_utils.get_font('small', 10), 
+                         fill=self.display_utils.BLACK)
+        else:
+            # Show error message if no hourly data
+            self.display_utils.draw_text_centered(
+                draw, "No hourly data available", 
+                y_pos, 
+                self.display_utils.get_font('small', 10), 
+                self.display_utils.RED
+            )
         
         # 5-Day Forecast
         y_pos += 80
@@ -295,29 +312,48 @@ class WeatherDashboardMode:
         daily_min = daily.get("temperature_2m_min", [])[:5]
         daily_codes = daily.get("weather_code", [])[:5]
         
+        # Debug: Log if we have data
+        if not daily_times:
+            self.logger.warning("No daily time data available")
+        if not daily_max:
+            self.logger.warning("No daily max temperature data available")
+        if not daily_min:
+            self.logger.warning("No daily min temperature data available")
+        if not daily_codes:
+            self.logger.warning("No daily weather code data available")
+        
         y_pos += 20
-        for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
-            # Parse date
-            try:
-                date_obj = datetime.fromisoformat(day.replace('Z', '+00:00'))
-                day_name = date_obj.strftime('%a')
-            except:
-                day_name = f"Day {i+1}"
-            
-            # Weather icon
-            icon = self._get_weather_icon(code)
-            
-            # Day info
-            day_text = f"{day_name} {icon} {self._format_temperature(max_temp)}/{self._format_temperature(min_temp)}"
-            
+        if daily_times and daily_max and daily_min and daily_codes:
+            for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
+                # Parse date
+                try:
+                    date_obj = datetime.fromisoformat(day.replace('Z', '+00:00'))
+                    day_name = date_obj.strftime('%a')
+                except:
+                    day_name = f"Day {i+1}"
+                
+                # Weather icon
+                icon = self._get_weather_icon(code)
+                
+                # Day info
+                day_text = f"{day_name} {icon} {self._format_temperature(max_temp)}/{self._format_temperature(min_temp)}"
+                
+                self.display_utils.draw_text_centered(
+                    draw, day_text, 
+                    y_pos, 
+                    self.display_utils.get_font('small', 10), 
+                    self.display_utils.BLACK
+                )
+                
+                y_pos += 18
+        else:
+            # Show error message if no daily data
             self.display_utils.draw_text_centered(
-                draw, day_text, 
+                draw, "No daily data available", 
                 y_pos, 
                 self.display_utils.get_font('small', 10), 
-                self.display_utils.BLACK
+                self.display_utils.RED
             )
-            
-            y_pos += 18
         
         # Last updated timestamp
         if self.weather_data.get("timestamp"):
