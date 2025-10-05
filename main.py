@@ -75,9 +75,10 @@ class MyImpressionApp:
             self.button_handler = None
             print("Running without button support - use keyboard input for testing")
         
-        # Current mode
+        # Current mode tracking
         self.current_mode = None
         self.mode_thread = None
+        self.mode_running = False  # Flag to control individual mode execution
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from JSON file."""
@@ -159,16 +160,17 @@ class MyImpressionApp:
             self.logger.error(f"Unknown mode: {mode_name}")
             return
         
-        # Stop current mode
-        if self.current_mode and self.mode_thread:
+        # Stop current mode if running
+        if self.current_mode and self.mode_thread and self.mode_thread.is_alive():
             self.logger.info(f"Stopping current mode: {self.current_mode}")
-            self.running = False
+            self.mode_running = False  # Signal the current mode to stop
+            self.mode_thread.join(timeout=5)  # Wait for current mode to stop
             if self.mode_thread.is_alive():
-                self.mode_thread.join(timeout=5)
+                self.logger.warning(f"Mode {self.current_mode} did not stop gracefully")
         
         # Start new mode
         self.current_mode = mode_name
-        self.running = True
+        self.mode_running = True  # Signal new mode to start
         self.mode_thread = threading.Thread(
             target=self._run_mode,
             args=(mode_name,),
@@ -181,7 +183,10 @@ class MyImpressionApp:
         """Run the specified mode in a separate thread."""
         try:
             mode = self.modes[mode_name]
-            mode.run(self.running)
+            # Pass a lambda that checks both the app running state and mode running state
+            def should_continue():
+                return self.running and self.mode_running
+            mode.run(should_continue)
         except Exception as e:
             self.logger.error(f"Error in mode {mode_name}: {e}")
             # Show error display
@@ -215,6 +220,7 @@ class MyImpressionApp:
     def stop(self):
         """Stop the application."""
         self.running = False
+        self.mode_running = False  # Stop current mode
         if self.mode_thread and self.mode_thread.is_alive():
             self.mode_thread.join(timeout=5)
         if self.button_handler:
