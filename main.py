@@ -77,8 +77,6 @@ class MyImpressionApp:
         
         # Current mode tracking
         self.current_mode = None
-        self.mode_thread = None
-        self.mode_running = False  # Flag to control individual mode execution
         self.switch = None  # Button number for mode switch (A=0, B=1, C=2, D=3)
         self.last_button_press = 0  # Timestamp of last button press
     
@@ -189,24 +187,9 @@ class MyImpressionApp:
             self.logger.info(f"Already in {mode_name} mode")
             return
         
-        # Stop current mode if running
-        if self.current_mode and self.mode_thread and self.mode_thread.is_alive():
-            self.logger.info(f"Stopping current mode: {self.current_mode}")
-            self.mode_running = False  # Signal the current mode to stop
-            self.mode_thread.join(timeout=5)  # Wait for current mode to stop
-            if self.mode_thread.is_alive():
-                self.logger.warning(f"Mode {self.current_mode} did not stop gracefully")
-        
-        # Start new mode
+        # Update current mode
         self.current_mode = mode_name
-        self.mode_running = True  # Signal new mode to start
-        self.mode_thread = threading.Thread(
-            target=self._run_mode,
-            args=(mode_name,),
-            daemon=True
-        )
-        self.mode_thread.start()
-        self.logger.info(f"Started mode: {mode_name}")
+        self.logger.info(f"Switched to mode: {mode_name}")
         
         # Flash LED to indicate mode change
         self._indicate_mode_change(mode_name)
@@ -241,54 +224,24 @@ class MyImpressionApp:
             button_modes = ["photo_cycle", "weather", "solar_monitor", "news_feed"]
             target_mode = button_modes[self.switch]
             
-            # Check if we need to switch
-            if self.current_mode != target_mode:
-                self.logger.info(f"Switching from {self.current_mode} to {target_mode}")
-                
-                # Signal current mode to stop
-                self.mode_running = False
-                
-                # Wait for current mode to stop if it's still running
-                if self.mode_thread and self.mode_thread.is_alive():
-                    self.logger.info("Waiting for current mode to stop...")
-                    self.mode_thread.join(timeout=2)  # Wait up to 2 seconds
-                    if self.mode_thread.is_alive():
-                        self.logger.warning("Current mode did not stop gracefully")
-                
-                # Start new mode
-                self.current_mode = target_mode
-                self.mode_running = True
-                self.mode_thread = threading.Thread(
-                    target=self._run_mode,
-                    args=(target_mode,),
-                    daemon=True
-                )
-                self.mode_thread.start()
-                self.logger.info(f"Started mode: {target_mode}")
-                
-                # Reset switch flag
-                self.switch = None
-                return True
-            else:
-                # Already in the correct mode, just reset the switch flag
-                self.switch = None
-                return False
+            # Switch to the target mode
+            self.switch_mode(target_mode)
+            
+            # Reset switch flag
+            self.switch = None
+            return True
         return False
     
-    def _run_mode(self, mode_name: str):
-        """Run the specified mode in a separate thread."""
-        try:
-            mode = self.modes[mode_name]
-            # Pass a lambda that checks both the app running state and mode running state
-            def should_continue():
-                return self.running and self.mode_running
-            
-            mode.run(should_continue)
-                
-        except Exception as e:
-            self.logger.error(f"Error in mode {mode_name}: {e}")
-            # Show error display
-            self.display_utils.show_error(f"Error in {mode_name}: {str(e)}")
+    def run_current_mode(self):
+        """Run the current mode's display update."""
+        if self.current_mode and self.current_mode in self.modes:
+            try:
+                mode = self.modes[self.current_mode]
+                mode.update_display()
+            except Exception as e:
+                self.logger.error(f"Error in mode {self.current_mode}: {e}")
+                # Show error display
+                self.display_utils.show_error(f"Error in {self.current_mode}: {str(e)}")
     
     def start(self):
         """Start the application."""
@@ -315,6 +268,10 @@ class MyImpressionApp:
             while self.running:
                 # Check for mode switches
                 self.check_and_switch_mode()
+                
+                # Run current mode's display update
+                self.run_current_mode()
+                
                 time.sleep(0.1)  # Check every 100ms
         except KeyboardInterrupt:
             self.logger.info("Shutting down...")
@@ -323,9 +280,6 @@ class MyImpressionApp:
     def stop(self):
         """Stop the application."""
         self.running = False
-        self.mode_running = False  # Stop current mode
-        if self.mode_thread and self.mode_thread.is_alive():
-            self.mode_thread.join(timeout=5)
         if self.button_handler:
             self.button_handler.stop()
         self.logger.info("Application stopped")

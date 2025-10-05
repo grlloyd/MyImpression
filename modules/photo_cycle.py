@@ -177,76 +177,40 @@ class PhotoCycleMode:
             self.logger.error(f"Failed to show no photos message: {e}")
     
     
-    def run(self, running_flag):
-        """Run the photo cycle mode."""
-        self.logger.info("Starting photo cycle mode")
+    def update_display(self):
+        """Update the display with the next photo if it's time."""
+        current_time = time.time()
+        
+        # Check if it's time to update the display
+        if current_time - self.last_update < self.display_time:
+            return
+        
+        self.last_update = current_time
         
         if not self.photos:
             self._show_no_photos_message()
-            # Keep showing the message until mode changes
-            while running_flag():
-                time.sleep(1)
             return
         
-        while running_flag():
+        try:
+            # Get next photo
+            photo_path = self._get_next_photo()
+            if not photo_path:
+                self.logger.warning("No photos available")
+                return
+            
+            self.logger.info(f"Displaying photo: {photo_path.name}")
+            
+            # Load and process the image
+            img = self._load_and_process_image(photo_path)
+            if img is None:
+                self.logger.error(f"Failed to process image: {photo_path}")
+                return
+            
+            # Display the image
             try:
-                # Check for mode switch before getting next photo
-                if self.main_app and self.main_app.switch is not None:
-                    # Mode switch requested, exit gracefully
-                    self.logger.info("Mode switch requested, exiting photo cycle")
-                    return
-                
-                # Get next photo
-                photo_path = self._get_next_photo()
-                if not photo_path:
-                    self.logger.warning("No photos available")
-                    # Check running flag during sleep
-                    for _ in range(50):  # 5 seconds in 0.1s increments
-                        if not running_flag():
-                            return
-                        time.sleep(0.1)
-                    continue
-                
-                self.logger.info(f"Displaying photo: {photo_path.name}")
-                
-                # Check if we should stop before processing
-                if not running_flag():
-                    return
-                
-                # Load and process the image
-                img = self._load_and_process_image(photo_path)
-                if img is None:
-                    self.logger.error(f"Failed to process image: {photo_path}")
-                    # Check running flag during sleep
-                    for _ in range(50):  # 5 seconds in 0.1s increments
-                        if not running_flag():
-                            return
-                        time.sleep(0.1)
-                    continue
-                
-                # Check if we should stop before displaying
-                if not running_flag():
-                    return
-                
-                # Display the image (already set above)
-                try:
-                    self.inky.show()
-                except Exception as e:
-                    self.logger.error(f"Failed to display image: {e}")
-                    continue
-                
-                # Wait for the specified display time, but check for mode switches more frequently
-                start_time = time.time()
-                while running_flag() and (time.time() - start_time) < self.display_time:
-                    time.sleep(0.1)
-                    # The main app will handle mode switching when the current display completes
-                
+                self.inky.show()
             except Exception as e:
-                self.logger.error(f"Error in photo cycle mode: {e}")
-                # Check running flag during sleep
-                for _ in range(50):  # 5 seconds in 0.1s increments
-                    if not running_flag():
-                        return
-                    time.sleep(0.1)
-        
-        self.logger.info("Photo cycle mode stopped")
+                self.logger.error(f"Failed to display image: {e}")
+                
+        except Exception as e:
+            self.logger.error(f"Error in photo cycle mode: {e}")

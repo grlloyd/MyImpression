@@ -18,15 +18,7 @@ class NewsFeedMode:
         self.main_app = main_app  # Reference to main app for mode switching
         self.logger = logging.getLogger(__name__)
     
-    def run(self, running_flag):
-        """Run news feed mode."""
+    def update_display(self):
+        """Update news feed display."""
         self.logger.info("News feed mode - not implemented yet")
         self.display_utils.show_error("News Feed\nNot implemented yet")
-        
-        # Keep running until mode switch or app stops
-        while running_flag():
-            # Check for mode switch
-            if self.main_app and self.main_app.switch is not None:
-                self.logger.info("Mode switch requested, exiting news feed")
-                return
-            time.sleep(1)

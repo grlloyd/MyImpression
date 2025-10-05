@@ -421,65 +421,39 @@ class WeatherDashboardMode:
         """Flash LED to indicate error."""
         self.logger.debug("LED: Weather data fetch failed")
     
-    def run(self, running_flag):
-        """Run weather dashboard mode."""
-        self.logger.info("Starting weather dashboard mode")
+    def update_display(self):
+        """Update the weather display if it's time."""
+        current_time = time.time()
         
-        while running_flag():
-            try:
-                # Check for mode switch before processing
-                if self.main_app and self.main_app.switch is not None:
-                    # Mode switch requested, exit gracefully
-                    self.logger.info("Mode switch requested, exiting weather dashboard")
-                    return
-                
-                # Check if we need to update weather data
-                current_time = time.time()
-                if (self.weather_data is None or 
-                    current_time - self.last_update > self.update_interval):
-                    
-                    self.logger.info("Fetching weather data...")
-                    self.display_utils.show_loading("Loading weather...")
-                    
-                    # Flash LED to indicate data loading
-                    self._flash_led_loading()
-                    
-                    # Fetch new weather data
-                    new_data = self._fetch_weather_data()
-                    if new_data:
-                        self.weather_data = new_data
-                        self.last_update = current_time
-                        self.logger.info("Weather data updated successfully")
-                        # Flash LED to indicate successful data fetch
-                        self._flash_led_success()
-                    else:
-                        self.logger.warning("Failed to fetch weather data, using cached data if available")
-                        # Flash LED to indicate error
-                        self._flash_led_error()
-                
-                # Check for mode switch before displaying
-                if self.main_app and self.main_app.switch is not None:
-                    # Mode switch requested, exit gracefully
-                    self.logger.info("Mode switch requested, exiting weather dashboard")
-                    return
-                
-                # Create and display weather information
-                weather_img = self._create_weather_display()
-                
-                try:
-                    self.inky.set_image(weather_img)
-                    self.inky.show()
-                    self.logger.debug("Weather display updated")
-                except Exception as e:
-                    self.logger.error(f"Failed to display weather: {e}")
-                
-                # Wait before next update, but check for mode switches more frequently
-                for _ in range(60):  # 60 seconds in 1-second increments
-                    if not running_flag():
-                        break
-                    time.sleep(1)
-                
-            except Exception as e:
-                self.logger.error(f"Error in weather dashboard: {e}")
-                self.display_utils.show_error(f"Weather Error:\n{str(e)}")
-                time.sleep(30)  # Wait 30 seconds before retrying
+        # Check if we need to update weather data
+        if (self.weather_data is None or 
+            current_time - self.last_update > self.update_interval):
+            
+            self.logger.info("Fetching weather data...")
+            self.display_utils.show_loading("Loading weather...")
+            
+            # Flash LED to indicate data loading
+            self._flash_led_loading()
+            
+            # Fetch new weather data
+            new_data = self._fetch_weather_data()
+            if new_data:
+                self.weather_data = new_data
+                self.last_update = current_time
+                self.logger.info("Weather data updated successfully")
+                # Flash LED to indicate successful data fetch
+                self._flash_led_success()
+            else:
+                self.logger.warning("Failed to fetch weather data, using cached data if available")
+                # Flash LED to indicate error
+                self._flash_led_error()
+        
+        # Create and display weather information
+        try:
+            weather_img = self._create_weather_display()
+            self.inky.set_image(weather_img)
+            self.inky.show()
+            self.logger.debug("Weather display updated")
+        except Exception as e:
+            self.logger.error(f"Error in weather dashboard: {e}")
+            self.display_utils.show_error(f"Weather Error:\n{str(e)}")
