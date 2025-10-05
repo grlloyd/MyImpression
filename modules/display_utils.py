@@ -6,6 +6,7 @@ Common utilities for display management and layout.
 import logging
 from typing import Tuple, Optional, List
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 import os
 
 
