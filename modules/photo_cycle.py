@@ -191,7 +191,9 @@ class PhotoCycleMode:
         while running_flag():
             try:
                 # Check for mode switch before getting next photo
-                if self.main_app and self.main_app.check_and_switch_mode():
+                if self.main_app and self.main_app.switch is not None:
+                    # Mode switch requested, exit gracefully
+                    self.logger.info("Mode switch requested, exiting photo cycle")
                     return
                 
                 # Get next photo

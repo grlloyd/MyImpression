@@ -428,7 +428,9 @@ class WeatherDashboardMode:
         while running_flag():
             try:
                 # Check for mode switch before processing
-                if self.main_app and self.main_app.check_and_switch_mode():
+                if self.main_app and self.main_app.switch is not None:
+                    # Mode switch requested, exit gracefully
+                    self.logger.info("Mode switch requested, exiting weather dashboard")
                     return
                 
                 # Check if we need to update weather data
@@ -456,7 +458,9 @@ class WeatherDashboardMode:
                         self._flash_led_error()
                 
                 # Check for mode switch before displaying
-                if self.main_app and self.main_app.check_and_switch_mode():
+                if self.main_app and self.main_app.switch is not None:
+                    # Mode switch requested, exit gracefully
+                    self.logger.info("Mode switch requested, exiting weather dashboard")
                     return
                 
                 # Create and display weather information

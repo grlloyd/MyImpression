@@ -228,8 +228,21 @@ class MyImpressionApp:
             # Check if we need to switch
             if self.current_mode != target_mode:
                 self.logger.info(f"Switching from {self.current_mode} to {target_mode}")
-                self.switch_mode(target_mode)
+                
+                # Signal current mode to stop
+                self.mode_running = False
                 self.switch = None  # Reset switch flag
+                
+                # Start new mode in a separate thread
+                self.current_mode = target_mode
+                self.mode_running = True
+                self.mode_thread = threading.Thread(
+                    target=self._run_mode,
+                    args=(target_mode,),
+                    daemon=True
+                )
+                self.mode_thread.start()
+                self.logger.info(f"Started mode: {target_mode}")
                 return True
             else:
                 # Already in the correct mode, just reset the switch flag

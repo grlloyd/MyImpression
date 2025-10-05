@@ -23,7 +23,10 @@ class NewsFeedMode:
         self.logger.info("News feed mode - not implemented yet")
         self.display_utils.show_error("News Feed\nNot implemented yet")
         
-        # Keep showing message until mode changes
+        # Keep running until mode switch or app stops
         while running_flag():
-            import time
+            # Check for mode switch
+            if self.main_app and self.main_app.switch is not None:
+                self.logger.info("Mode switch requested, exiting news feed")
+                return
             time.sleep(1)
