@@ -23,6 +23,6 @@ class SolarMonitorMode:
         self.display_utils.show_error("Solar Monitor\nNot implemented yet")
         
         # Keep showing message until mode changes
-        while running_flag:
+        while running_flag():
             import time
             time.sleep(1)

@@ -320,7 +320,7 @@ class WeatherDashboardMode:
         """Run weather dashboard mode."""
         self.logger.info("Starting weather dashboard mode")
         
-        while running_flag:
+        while running_flag():
             try:
                 # Check if we need to update weather data
                 current_time = time.time()

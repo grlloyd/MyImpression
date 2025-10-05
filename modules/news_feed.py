@@ -23,6 +23,6 @@ class NewsFeedMode:
         self.display_utils.show_error("News Feed\nNot implemented yet")
         
         # Keep showing message until mode changes
-        while running_flag:
+        while running_flag():
             import time
             time.sleep(1)

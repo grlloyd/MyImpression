@@ -183,11 +183,11 @@ class PhotoCycleMode:
         if not self.photos:
             self._show_no_photos_message()
             # Keep showing the message until mode changes
-            while running_flag:
+            while running_flag():
                 time.sleep(1)
             return
         
-        while running_flag:
+        while running_flag():
             try:
                 # Get next photo
                 photo_path = self._get_next_photo()
@@ -214,7 +214,7 @@ class PhotoCycleMode:
                 
                 # Wait for the specified display time
                 start_time = time.time()
-                while running_flag and (time.time() - start_time) < self.display_time:
+                while running_flag() and (time.time() - start_time) < self.display_time:
                     time.sleep(0.1)
                 
             except Exception as e:
