@@ -231,9 +231,15 @@ class MyImpressionApp:
                 
                 # Signal current mode to stop
                 self.mode_running = False
-                self.switch = None  # Reset switch flag
                 
-                # Start new mode in a separate thread
+                # Wait for current mode to stop if it's still running
+                if self.mode_thread and self.mode_thread.is_alive():
+                    self.logger.info("Waiting for current mode to stop...")
+                    self.mode_thread.join(timeout=2)  # Wait up to 2 seconds
+                    if self.mode_thread.is_alive():
+                        self.logger.warning("Current mode did not stop gracefully")
+                
+                # Start new mode
                 self.current_mode = target_mode
                 self.mode_running = True
                 self.mode_thread = threading.Thread(
@@ -243,6 +249,9 @@ class MyImpressionApp:
                 )
                 self.mode_thread.start()
                 self.logger.info(f"Started mode: {target_mode}")
+                
+                # Reset switch flag
+                self.switch = None
                 return True
             else:
                 # Already in the correct mode, just reset the switch flag
@@ -287,8 +296,10 @@ class MyImpressionApp:
         
         try:
             # Main loop
-            while True:
-                time.sleep(1)
+            while self.running:
+                # Check for mode switches
+                self.check_and_switch_mode()
+                time.sleep(0.1)  # Check every 100ms
         except KeyboardInterrupt:
             self.logger.info("Shutting down...")
             self.stop()
