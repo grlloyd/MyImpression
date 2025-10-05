@@ -273,6 +273,15 @@ class WeatherDashboardMode:
         
         y_pos += 20
         if hourly_times and hourly_temps and hourly_codes:
+            # Add test text to verify display is working
+            self.display_utils.draw_text_centered(
+                draw, f"TEST: {len(hourly_times)} hours available", 
+                y_pos, 
+                self.display_utils.get_font('small', 10), 
+                self.display_utils.BLUE
+            )
+            y_pos += 20
+            
             for i, (time_str, temp, code) in enumerate(zip(hourly_times, hourly_temps, hourly_codes)):
                 if i >= 6:  # Show only 6 hours to fit on screen
                     break
@@ -344,6 +353,15 @@ class WeatherDashboardMode:
         
         y_pos += 20
         if daily_times and daily_max and daily_min and daily_codes:
+            # Add test text to verify display is working
+            self.display_utils.draw_text_centered(
+                draw, f"TEST: {len(daily_times)} days available", 
+                y_pos, 
+                self.display_utils.get_font('small', 10), 
+                self.display_utils.BLUE
+            )
+            y_pos += 20
+            
             for i, (day, max_temp, min_temp, code) in enumerate(zip(daily_times, daily_max, daily_min, daily_codes)):
                 # Parse date
                 try:
