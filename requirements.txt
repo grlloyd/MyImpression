@@ -1,0 +1,24 @@
+# MyImpression - 4-Mode Display System Requirements
+# Core dependencies for the Inky Impression display system
+
+# Display and image processing
+inky>=2.2.1
+Pillow>=11.0.0
+numpy>=2.2.1
+
+# GPIO and hardware control (for Raspberry Pi)
+gpiod>=2.0.0
+gpiodevice>=1.0.0
+
+# HTTP requests for future API integrations
+requests>=2.31.0
+
+# JSON handling (built-in, but listed for clarity)
+# json - built-in module
+
+# Threading and timing (built-in modules)
+# threading - built-in module
+# time - built-in module
+# logging - built-in module
+# pathlib - built-in module
+# typing - built-in module
