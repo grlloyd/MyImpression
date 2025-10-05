@@ -5,11 +5,11 @@ Wants=network.target
 
 [Service]
 Type=simple
-User=pi
-Group=pi
-WorkingDirectory=/home/pi/MyImpression
-Environment=PATH=/home/pi/MyImpression/venv/bin
-ExecStart=/home/pi/MyImpression/venv/bin/python /home/pi/MyImpression/main.py
+User=gavin
+Group=gavin
+WorkingDirectory=/home/gavin/MyImpression
+Environment=PATH=/home/gavin/MyImpression/venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/gavin/MyImpression/venv/bin/python /home/gavin/MyImpression/main.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
