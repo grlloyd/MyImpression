@@ -124,7 +124,8 @@ class MyImpressionApp:
                 "saturation": 0.5
             },
             "weather": {
-                "api_key": "your_openweathermap_key",
+                "latitude": 51.5085300,
+                "longitude": -0.1257400,
                 "location": "London, UK",
                 "units": "metric",
                 "update_interval": 1800
