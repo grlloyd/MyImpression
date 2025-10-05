@@ -86,6 +86,10 @@ class WeatherDashboardMode:
             }
             
             self.logger.info("Weather data fetched successfully")
+            # Debug: Log the structure of the data
+            self.logger.debug(f"Current data keys: {list(data.get('current', {}).keys())}")
+            self.logger.debug(f"Hourly data keys: {list(data.get('hourly', {}).keys())}")
+            self.logger.debug(f"Daily data keys: {list(data.get('daily', {}).keys())}")
             return weather_data
             
         except requests.exceptions.RequestException as e:
