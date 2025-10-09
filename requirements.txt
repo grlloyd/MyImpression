@@ -1,4 +1,4 @@
-# MyImpression - 4-Mode Display System Requirements
+# MyImpression - 3-Mode Display System Requirements
 # Core dependencies for the Inky Impression display system
 
 # Display and image processing
@@ -10,11 +10,8 @@ numpy>=2.2.1
 gpiod>=2.0.0
 gpiodevice>=1.0.0
 
-# HTTP requests for API integrations
+# HTTP requests for RSS feed integration
 requests>=2.31.0
-
-# HTML rendering and browser automation for weather dashboard
-selenium>=4.15.0
 
 # JSON handling (built-in, but listed for clarity)
 # json - built-in module

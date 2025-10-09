@@ -125,11 +125,11 @@ class MyImpressionApp:
             },
             "tumblr_rss": {
                 "rss_url": "https://handsoffmydinosaur.tumblr.com/rss",
-                "display_time": 15,
-                "max_posts": 20,
-                "update_interval": 3600,
+                "display_time": 300,
+                "max_posts": 300,
+                "update_interval": 86400,
                 "background_color": "auto",
-                "saturation": 0.5
+                "saturation": 1.0
             },
             "news_feed": {
                 "sources": ["arxiv"],
