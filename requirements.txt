@@ -10,7 +10,7 @@ numpy>=2.2.1
 gpiod>=2.0.0
 gpiodevice>=1.0.0
 
-# HTTP requests for future API integrations
+# HTTP requests for API integrations
 requests>=2.31.0
 
 # HTML rendering and browser automation for weather dashboard

@@ -27,14 +27,22 @@ class HTMLWeatherRenderer:
         self.template_path = Path(template_path)
         self.logger = logging.getLogger(__name__)
         
-        # Setup Chrome options for headless rendering
+        # Setup Chrome options for headless rendering (Raspberry Pi optimized)
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.chrome_options.add_argument("--disable-gpu")
+        self.chrome_options.add_argument("--disable-software-rasterizer")
+        self.chrome_options.add_argument("--disable-background-timer-throttling")
+        self.chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        self.chrome_options.add_argument("--disable-renderer-backgrounding")
         self.chrome_options.add_argument("--window-size=800,480")
         self.chrome_options.add_argument("--force-device-scale-factor=1")
+        self.chrome_options.add_argument("--disable-extensions")
+        self.chrome_options.add_argument("--disable-plugins")
+        self.chrome_options.add_argument("--disable-images")  # Faster loading
+        self.chrome_options.add_argument("--disable-javascript")  # We'll inject our own
         
         # Initialize webdriver
         self.driver = None
@@ -43,10 +51,12 @@ class HTMLWeatherRenderer:
     def _init_driver(self):
         """Initialize the Chrome webdriver."""
         try:
+            # Try to initialize Chrome webdriver
             self.driver = webdriver.Chrome(options=self.chrome_options)
             self.logger.info("Chrome webdriver initialized successfully")
         except Exception as e:
-            self.logger.error(f"Failed to initialize Chrome webdriver: {e}")
+            self.logger.warning(f"Failed to initialize Chrome webdriver: {e}")
+            self.logger.info("Will use fallback HTML generation instead")
             self.driver = None
     
     def _create_html_file(self, weather_data: Dict[str, Any]) -> str:

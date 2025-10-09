@@ -28,6 +28,7 @@ from modules.photo_cycle import PhotoCycleMode
 from modules.weather_dashboard import WeatherDashboardMode
 from modules.solar_monitor import SolarMonitorMode
 from modules.news_feed import NewsFeedMode
+from modules.tumblr_feed import TumblrFeedMode
 from modules.display_utils import DisplayUtils
 
 
@@ -64,7 +65,7 @@ class MyImpressionApp:
         self.modes = {
             "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils, self),
             "weather": WeatherDashboardMode(self.inky, self.config, self.display_utils, self),
-            "solar_monitor": SolarMonitorMode(self.inky, self.config, self.display_utils, self),
+            "tumblr_feed": TumblrFeedMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
@@ -120,7 +121,7 @@ class MyImpressionApp:
             "buttons": {
                 "A": "photo_cycle",
                 "B": "weather", 
-                "C": "solar_monitor",
+                "C": "tumblr_feed",
                 "D": "news_feed"
             },
             "photo_cycle": {
@@ -138,11 +139,14 @@ class MyImpressionApp:
                 "units": "metric",
                 "update_interval": 1800
             },
-            "solar_monitor": {
-                "api_endpoint": "https://monitoringapi.solaredge.com",
-                "site_id": "your_site_id",
-                "api_key": "your_solaredge_key",
-                "update_interval": 300
+            "tumblr_feed": {
+                "api_key": "your_tumblr_api_key",
+                "blog_name": "handsoffmydinosaur",
+                "display_time": 15,
+                "max_posts": 20,
+                "update_interval": 3600,
+                "background_color": "white",
+                "saturation": 0.5
             },
             "news_feed": {
                 "sources": ["arxiv"],
@@ -168,7 +172,7 @@ class MyImpressionApp:
         
         if button_num is not None:
             # Only set switch if it's different from current target
-            button_modes = ["photo_cycle", "weather", "solar_monitor", "news_feed"]
+            button_modes = ["photo_cycle", "weather", "tumblr_feed", "news_feed"]
             target_mode = button_modes[button_num]
             
             if self.current_mode != target_mode:
@@ -210,7 +214,7 @@ class MyImpressionApp:
         mode_patterns = {
             "photo_cycle": 1,    # 1 flash
             "weather": 2,        # 2 flashes
-            "solar_monitor": 3,  # 3 flashes
+            "tumblr_feed": 3,    # 3 flashes
             "news_feed": 4       # 4 flashes
         }
         
@@ -228,7 +232,7 @@ class MyImpressionApp:
         """Check if mode switch is needed and execute it."""
         if self.switch is not None:
             # Map button number to mode name
-            button_modes = ["photo_cycle", "weather", "solar_monitor", "news_feed"]
+            button_modes = ["photo_cycle", "weather", "tumblr_feed", "news_feed"]
             target_mode = button_modes[self.switch]
             
             # Switch to the target mode
