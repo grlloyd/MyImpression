@@ -192,6 +192,47 @@ class TumblrRSSMode:
         self.current_index = (self.current_index + 1) % len(self.cached_images)
         return image_data
     
+    def _get_image_background_color(self, img: Image.Image) -> tuple:
+        """Get background color by sampling corner pixels of the image."""
+        try:
+            width, height = img.size
+            
+            # Sample pixels from all four corners
+            corner_pixels = [
+                img.getpixel((0, 0)),                    # Top-left
+                img.getpixel((width-1, 0)),             # Top-right
+                img.getpixel((0, height-1)),            # Bottom-left
+                img.getpixel((width-1, height-1))       # Bottom-right
+            ]
+            
+            # Convert all corner pixels to RGB format
+            rgb_pixels = []
+            for pixel in corner_pixels:
+                if img.mode == 'RGBA':
+                    # For RGBA, use RGB values and ignore alpha
+                    rgb_pixels.append(pixel[:3])
+                elif img.mode == 'RGB':
+                    rgb_pixels.append(pixel)
+                elif img.mode == 'L':
+                    # For grayscale, convert to RGB
+                    rgb_pixels.append((pixel, pixel, pixel))
+                else:
+                    # Fallback to white
+                    rgb_pixels.append((255, 255, 255))
+            
+            # Calculate average color from corner pixels
+            avg_r = sum(pixel[0] for pixel in rgb_pixels) // len(rgb_pixels)
+            avg_g = sum(pixel[1] for pixel in rgb_pixels) // len(rgb_pixels)
+            avg_b = sum(pixel[2] for pixel in rgb_pixels) // len(rgb_pixels)
+            
+            bg_color = (avg_r, avg_g, avg_b)
+            self.logger.debug(f"Detected background color from image corners: {bg_color}")
+            return bg_color
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to detect background color: {e}")
+            return self._get_background_color()
+    
     def _resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple) -> Image.Image:
         """Resize image while maintaining aspect ratio."""
         target_width, target_height = target_size
@@ -209,8 +250,13 @@ class TumblrRSSMode:
         # Resize the image
         img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
         
+        # Get background color - either from image or configured color
+        if self.background_color == "auto":
+            bg_color = self._get_image_background_color(img)
+        else:
+            bg_color = self._get_background_color()
+        
         # Create a new image with target size and paste the resized image in the center
-        bg_color = self._get_background_color()
         new_img = Image.new('RGB', target_size, bg_color)
         
         # Calculate position to center the image

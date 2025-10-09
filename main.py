@@ -128,7 +128,7 @@ class MyImpressionApp:
                 "display_time": 15,
                 "max_posts": 20,
                 "update_interval": 3600,
-                "background_color": "white",
+                "background_color": "auto",
                 "saturation": 0.5
             },
             "news_feed": {
