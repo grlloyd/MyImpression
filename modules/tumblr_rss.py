@@ -143,8 +143,8 @@ class TumblrRSSMode:
         except:
             return 0
     
-    def _download_image(self, image_url: str) -> Optional[Image.Image]:
-        """Download and process an image from URL."""
+    def _download_image(self, image_url: str) -> Optional[tuple]:
+        """Download and process an image from URL. Returns (image, background_color)."""
         try:
             # Check cache first
             cache_filename = f"{hash(image_url)}.jpg"
@@ -152,7 +152,10 @@ class TumblrRSSMode:
             
             if cache_path.exists():
                 self.logger.debug(f"Loading cached image: {cache_filename}")
-                return Image.open(cache_path)
+                img = Image.open(cache_path)
+                # For cached images, detect background from the cached RGB image
+                bg_color = self._get_image_background_color(img)
+                return img, bg_color
             
             # Download image
             self.logger.debug(f"Downloading image: {image_url}")
@@ -160,16 +163,21 @@ class TumblrRSSMode:
             response.raise_for_status()
             
             # Load image from bytes
-            img = Image.open(io.BytesIO(response.content))
+            original_img = Image.open(io.BytesIO(response.content))
+            
+            # Detect background color from original image before conversion
+            bg_color = self._get_image_background_color(original_img)
             
             # Convert to RGB if necessary
-            if img.mode == 'RGBA':
-                # Create a white background for transparency
-                background = Image.new('RGB', img.size, (255, 255, 255))
-                background.paste(img, mask=img.split()[-1])  # Use alpha channel as mask
+            if original_img.mode == 'RGBA':
+                # Use the detected background color instead of white
+                background = Image.new('RGB', original_img.size, bg_color)
+                background.paste(original_img, mask=original_img.split()[-1])  # Use alpha channel as mask
                 img = background
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
+            elif original_img.mode != 'RGB':
+                img = original_img.convert('RGB')
+            else:
+                img = original_img
             
             # Cache the image
             try:
@@ -177,7 +185,7 @@ class TumblrRSSMode:
             except Exception as e:
                 self.logger.warning(f"Failed to cache image: {e}")
             
-            return img
+            return img, bg_color
             
         except Exception as e:
             self.logger.error(f"Failed to download image {image_url}: {e}")
@@ -233,7 +241,7 @@ class TumblrRSSMode:
             self.logger.warning(f"Failed to detect background color: {e}")
             return self._get_background_color()
     
-    def _resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple) -> Image.Image:
+    def _resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple, bg_color: tuple = None) -> Image.Image:
         """Resize image while maintaining aspect ratio."""
         target_width, target_height = target_size
         img_width, img_height = img.size
@@ -250,8 +258,11 @@ class TumblrRSSMode:
         # Resize the image
         img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
         
-        # Get background color - either from image or configured color
-        if self.background_color == "auto":
+        # Get background color - either from parameter, image, or configured color
+        if bg_color is not None:
+            # Use the provided background color
+            pass
+        elif self.background_color == "auto":
             bg_color = self._get_image_background_color(img)
         else:
             bg_color = self._get_background_color()
@@ -351,13 +362,15 @@ class TumblrRSSMode:
             self.logger.info(f"Displaying RSS image: {image_data['url']}")
             
             # Download and process the image
-            img = self._download_image(image_data['url'])
-            if img is None:
+            result = self._download_image(image_data['url'])
+            if result is None:
                 self.logger.error(f"Failed to download image: {image_data['url']}")
                 return
             
+            img, bg_color = result
+            
             # Resize to display resolution while maintaining aspect ratio
-            img = self._resize_with_aspect_ratio(img, self.inky.resolution)
+            img = self._resize_with_aspect_ratio(img, self.inky.resolution, bg_color)
             
             # Set image directly with saturation
             try:
