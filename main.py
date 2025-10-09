@@ -26,7 +26,7 @@ from inky.auto import auto
 from modules.button_handler import ButtonHandler
 from modules.photo_cycle import PhotoCycleMode
 from modules.news_feed import NewsFeedMode
-from modules.tumblr_feed import TumblrFeedMode
+from modules.tumblr_rss import TumblrRSSMode
 from modules.display_utils import DisplayUtils
 
 
@@ -62,7 +62,7 @@ class MyImpressionApp:
         # Initialize modes
         self.modes = {
             "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils, self),
-            "tumblr_feed": TumblrFeedMode(self.inky, self.config, self.display_utils, self),
+            "tumblr_rss": TumblrRSSMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
@@ -111,7 +111,7 @@ class MyImpressionApp:
             },
             "buttons": {
                 "A": "photo_cycle",
-                "B": "tumblr_feed", 
+                "B": "tumblr_rss", 
                 "C": "news_feed",
                 "D": "photo_cycle"
             },
@@ -123,9 +123,8 @@ class MyImpressionApp:
                 "background_color": "white",
                 "saturation": 0.5
             },
-            "tumblr_feed": {
-                "api_key": "your_tumblr_api_key",
-                "blog_name": "handsoffmydinosaur",
+            "tumblr_rss": {
+                "rss_url": "https://handsoffmydinosaur.tumblr.com/rss",
                 "display_time": 15,
                 "max_posts": 20,
                 "update_interval": 3600,
@@ -156,7 +155,7 @@ class MyImpressionApp:
         
         if button_num is not None:
             # Only set switch if it's different from current target
-            button_modes = ["photo_cycle", "tumblr_feed", "news_feed", "photo_cycle"]
+            button_modes = ["photo_cycle", "tumblr_rss", "news_feed", "photo_cycle"]
             target_mode = button_modes[button_num]
             
             if self.current_mode != target_mode:
@@ -197,7 +196,7 @@ class MyImpressionApp:
         # Different LED patterns for different modes
         mode_patterns = {
             "photo_cycle": 1,    # 1 flash
-            "tumblr_feed": 2,    # 2 flashes
+            "tumblr_rss": 2,     # 2 flashes
             "news_feed": 3       # 3 flashes
         }
         
@@ -215,7 +214,7 @@ class MyImpressionApp:
         """Check if mode switch is needed and execute it."""
         if self.switch is not None:
             # Map button number to mode name
-            button_modes = ["photo_cycle", "tumblr_feed", "news_feed", "photo_cycle"]
+            button_modes = ["photo_cycle", "tumblr_rss", "news_feed", "photo_cycle"]
             target_mode = button_modes[self.switch]
             
             # Switch to the target mode

@@ -1,33 +1,34 @@
 """
-Tumblr Feed Mode
-Displays images from a Tumblr blog feed using the Tumblr API.
+Tumblr RSS Feed Mode
+Displays images from a Tumblr blog RSS feed (no API key required).
 """
 
 import time
 import random
 import logging
 import requests
+import re
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from PIL import Image, ImageDraw
 import io
+import xml.etree.ElementTree as ET
 
 
-class TumblrFeedMode:
-    """Tumblr feed mode for displaying images from a Tumblr blog."""
+class TumblrRSSMode:
+    """Tumblr RSS feed mode for displaying images from a Tumblr blog RSS feed."""
     
     def __init__(self, inky_display, config: dict, display_utils, main_app=None):
-        """Initialize Tumblr feed mode."""
+        """Initialize Tumblr RSS feed mode."""
         self.inky = inky_display
         self.config = config
         self.display_utils = display_utils
         self.main_app = main_app  # Reference to main app for mode switching
         self.logger = logging.getLogger(__name__)
         
-        # Get Tumblr configuration
-        self.tumblr_config = config.get('tumblr_feed', {})
-        self.api_key = self.tumblr_config.get('api_key', '')
-        self.blog_name = self.tumblr_config.get('blog_name', 'handsoffmydinosaur')
+        # Get Tumblr RSS configuration
+        self.tumblr_config = config.get('tumblr_rss', {})
+        self.rss_url = self.tumblr_config.get('rss_url', 'https://handsoffmydinosaur.tumblr.com/rss')
         self.display_time = self.tumblr_config.get('display_time', 15)
         self.max_posts = self.tumblr_config.get('max_posts', 20)
         self.update_interval = self.tumblr_config.get('update_interval', 3600)  # 1 hour
@@ -41,109 +42,106 @@ class TumblrFeedMode:
         self.last_fetch = 0
         
         # Cache directory
-        self.cache_dir = Path("data/cache/tumblr")
+        self.cache_dir = Path("data/cache/tumblr_rss")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         # Load initial images
-        self._fetch_tumblr_images()
+        self._fetch_rss_images()
     
-    def _fetch_tumblr_images(self):
-        """Fetch images from Tumblr API."""
-        if not self.api_key:
-            self.logger.error("Tumblr API key not configured")
-            return
-        
+    def _fetch_rss_images(self):
+        """Fetch images from Tumblr RSS feed."""
         current_time = time.time()
         
         # Check if we need to fetch new images
         if current_time - self.last_fetch < self.update_interval and self.cached_images:
-            self.logger.info("Using cached Tumblr images")
+            self.logger.info("Using cached RSS images")
             return
         
-        self.logger.info(f"Fetching images from Tumblr blog: {self.blog_name}")
+        self.logger.info(f"Fetching images from RSS feed: {self.rss_url}")
         
         try:
-            # Construct API URL - try different blog identifier formats
-            # According to Tumblr API docs, blog identifiers can be:
-            # 1. Blog name: "handsoffmydinosaur" 
-            # 2. Hostname: "handsoffmydinosaur.tumblr.com"
-            # 3. UUID: "t:..." (retrieved from API)
-            
-            # Use the blog name as provided (should be handsoffmydinosaur.tumblr.com)
-            api_url = f"https://api.tumblr.com/v2/blog/{self.blog_name}/posts/photo"
-            params = {
-                'api_key': self.api_key,
-                'limit': self.max_posts,
-                'offset': 0
-            }
-            
-            # Make API request
-            response = requests.get(api_url, params=params, timeout=30)
-            
+            # Fetch RSS feed
+            response = requests.get(self.rss_url, timeout=30)
             response.raise_for_status()
-            data = response.json()
             
-            # Log the response for debugging
-            self.logger.debug(f"Tumblr API response: {data}")
+            # Parse RSS XML
+            root = ET.fromstring(response.content)
             
-            if 'response' not in data:
-                self.logger.error(f"Invalid Tumblr API response structure: {data}")
-                return
-                
-            if 'posts' not in data['response']:
-                self.logger.error(f"No posts in response: {data['response']}")
-                return
-            
-            posts = data['response']['posts']
-            self.logger.info(f"Retrieved {len(posts)} posts from Tumblr")
+            # Find all items (posts)
+            items = root.findall('.//item')
+            self.logger.info(f"Found {len(items)} posts in RSS feed")
             
             # Extract image URLs from posts
             new_images = []
-            for post in posts:
-                self.logger.debug(f"Processing post: {post.get('id', 'unknown')} of type: {post.get('type', 'unknown')}")
-                
-                # Handle photo posts
-                if 'photos' in post and post['photos']:
-                    for photo in post['photos']:
-                        if 'original_size' in photo and 'url' in photo['original_size']:
-                            image_url = photo['original_size']['url']
+            for item in items:
+                # Get post description/content
+                description_elem = item.find('description')
+                if description_elem is not None:
+                    description = description_elem.text or ""
+                    
+                    # Extract image URLs using regex
+                    # Look for img src attributes
+                    img_pattern = r'<img[^>]+src="([^"]+)"[^>]*>'
+                    img_matches = re.findall(img_pattern, description, re.IGNORECASE)
+                    
+                    for img_url in img_matches:
+                        # Filter out small images (thumbnails, avatars, etc.)
+                        if self._is_valid_image_url(img_url):
                             new_images.append({
-                                'url': image_url,
-                                'post_id': post.get('id', ''),
-                                'timestamp': post.get('timestamp', 0),
-                                'post_type': post.get('type', 'photo')
+                                'url': img_url,
+                                'post_title': item.find('title').text if item.find('title') is not None else 'Untitled',
+                                'post_link': item.find('link').text if item.find('link') is not None else '',
+                                'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
                             })
-                            self.logger.debug(f"Found image URL: {image_url}")
-                
-                # Handle other post types that might have images (like text posts with images)
-                elif 'content' in post:
-                    # This handles text posts that might have embedded images
-                    content = post['content']
-                    if isinstance(content, list):
-                        for item in content:
-                            if isinstance(item, dict) and item.get('type') == 'image':
-                                if 'media' in item and 'url' in item['media']:
-                                    image_url = item['media']['url']
-                                    new_images.append({
-                                        'url': image_url,
-                                        'post_id': post.get('id', ''),
-                                        'timestamp': post.get('timestamp', 0),
-                                        'post_type': post.get('type', 'text')
-                                    })
-                                    self.logger.debug(f"Found embedded image URL: {image_url}")
+                            self.logger.debug(f"Found image URL: {img_url}")
             
             if new_images:
-                self.cached_images = new_images
+                # Remove duplicates while preserving order
+                seen_urls = set()
+                unique_images = []
+                for img in new_images:
+                    if img['url'] not in seen_urls:
+                        seen_urls.add(img['url'])
+                        unique_images.append(img)
+                
+                self.cached_images = unique_images[:self.max_posts]
                 self.current_index = 0
                 self.last_fetch = current_time
-                self.logger.info(f"Cached {len(self.cached_images)} images from Tumblr")
+                self.logger.info(f"Cached {len(self.cached_images)} unique images from RSS feed")
             else:
-                self.logger.warning("No images found in Tumblr posts")
+                self.logger.warning("No images found in RSS feed")
                 
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Failed to fetch Tumblr images: {e}")
+            self.logger.error(f"Failed to fetch RSS feed: {e}")
+        except ET.ParseError as e:
+            self.logger.error(f"Failed to parse RSS XML: {e}")
         except Exception as e:
-            self.logger.error(f"Error processing Tumblr API response: {e}")
+            self.logger.error(f"Error processing RSS feed: {e}")
+    
+    def _is_valid_image_url(self, url: str) -> bool:
+        """Check if the image URL is valid and not a thumbnail."""
+        # Skip very small images (likely thumbnails)
+        if any(size in url for size in ['s75x75', 's100x200', 's250x400']):
+            return False
+        
+        # Skip avatar images
+        if 'avatar' in url.lower():
+            return False
+        
+        # Must be a valid image URL
+        if not any(ext in url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
+            return False
+        
+        return True
+    
+    def _parse_rss_date(self, date_str: str) -> int:
+        """Parse RSS date string to timestamp."""
+        try:
+            from email.utils import parsedate_to_datetime
+            dt = parsedate_to_datetime(date_str)
+            return int(dt.timestamp())
+        except:
+            return 0
     
     def _download_image(self, image_url: str) -> Optional[Image.Image]:
         """Download and process an image from URL."""
@@ -249,9 +247,9 @@ class TumblrFeedMode:
         font_large = self.display_utils.get_font('large', 24)
         font_medium = self.display_utils.get_font('medium', 16)
         
-        self.display_utils.draw_text_centered(draw, "No Tumblr Images", 150, font_large, self.display_utils.BLACK)
-        self.display_utils.draw_text_centered(draw, f"Blog: {self.blog_name}", 200, font_medium, self.display_utils.BLUE)
-        self.display_utils.draw_text_centered(draw, "Check API key and connection", 230, font_medium, self.display_utils.BLUE)
+        self.display_utils.draw_text_centered(draw, "No RSS Images", 150, font_large, self.display_utils.BLACK)
+        self.display_utils.draw_text_centered(draw, f"Feed: {self.rss_url}", 200, font_medium, self.display_utils.BLUE)
+        self.display_utils.draw_text_centered(draw, "Check RSS feed and connection", 230, font_medium, self.display_utils.BLUE)
         
         try:
             self.inky.set_image(img)
@@ -268,8 +266,8 @@ class TumblrFeedMode:
         font_large = self.display_utils.get_font('large', 24)
         font_medium = self.display_utils.get_font('medium', 16)
         
-        self.display_utils.draw_text_centered(draw, "Loading Tumblr Images", 150, font_large, self.display_utils.BLACK)
-        self.display_utils.draw_text_centered(draw, f"From: {self.blog_name}", 200, font_medium, self.display_utils.BLUE)
+        self.display_utils.draw_text_centered(draw, "Loading RSS Images", 150, font_large, self.display_utils.BLACK)
+        self.display_utils.draw_text_centered(draw, "From Tumblr RSS Feed", 200, font_medium, self.display_utils.BLUE)
         self.display_utils.draw_text_centered(draw, "Please wait...", 230, font_medium, self.display_utils.BLUE)
         
         try:
@@ -291,7 +289,7 @@ class TumblrFeedMode:
         # Try to fetch new images if needed
         if not self.cached_images or current_time - self.last_fetch >= self.update_interval:
             self._show_loading_message()
-            self._fetch_tumblr_images()
+            self._fetch_rss_images()
         
         if not self.cached_images:
             self._show_no_images_message()
@@ -304,7 +302,7 @@ class TumblrFeedMode:
                 self.logger.warning("No images available")
                 return
             
-            self.logger.info(f"Displaying Tumblr image: {image_data['url']}")
+            self.logger.info(f"Displaying RSS image: {image_data['url']}")
             
             # Download and process the image
             img = self._download_image(image_data['url'])
@@ -329,4 +327,4 @@ class TumblrFeedMode:
                 self.logger.error(f"Failed to display image: {e}")
                 
         except Exception as e:
-            self.logger.error(f"Error in Tumblr feed mode: {e}")
+            self.logger.error(f"Error in Tumblr RSS mode: {e}")
