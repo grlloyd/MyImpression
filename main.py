@@ -25,8 +25,6 @@ from inky.auto import auto
 # Import our modules
 from modules.button_handler import ButtonHandler
 from modules.photo_cycle import PhotoCycleMode
-from modules.weather_dashboard import WeatherDashboardMode
-from modules.solar_monitor import SolarMonitorMode
 from modules.news_feed import NewsFeedMode
 from modules.tumblr_feed import TumblrFeedMode
 from modules.display_utils import DisplayUtils
@@ -64,17 +62,10 @@ class MyImpressionApp:
         # Initialize modes
         self.modes = {
             "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils, self),
-            "weather": WeatherDashboardMode(self.inky, self.config, self.display_utils, self),
             "tumblr_feed": TumblrFeedMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
-        # Preload weather icons for better performance
-        try:
-            self.modes["weather"].icon_manager.preload_icons()
-            self.logger.info("Weather icons preloaded successfully")
-        except Exception as e:
-            self.logger.warning(f"Failed to preload weather icons: {e}")
         
         # Initialize button handler
         if GPIO_AVAILABLE:
@@ -120,9 +111,9 @@ class MyImpressionApp:
             },
             "buttons": {
                 "A": "photo_cycle",
-                "B": "weather", 
-                "C": "tumblr_feed",
-                "D": "news_feed"
+                "B": "tumblr_feed", 
+                "C": "news_feed",
+                "D": "photo_cycle"
             },
             "photo_cycle": {
                 "folder": "./data/photos",
@@ -131,13 +122,6 @@ class MyImpressionApp:
                 "supported_formats": ["jpg", "jpeg", "png", "webp"],
                 "background_color": "white",
                 "saturation": 0.5
-            },
-            "weather": {
-                "latitude": 51.5085300,
-                "longitude": -0.1257400,
-                "location": "London, UK",
-                "units": "metric",
-                "update_interval": 1800
             },
             "tumblr_feed": {
                 "api_key": "your_tumblr_api_key",
@@ -172,7 +156,7 @@ class MyImpressionApp:
         
         if button_num is not None:
             # Only set switch if it's different from current target
-            button_modes = ["photo_cycle", "weather", "tumblr_feed", "news_feed"]
+            button_modes = ["photo_cycle", "tumblr_feed", "news_feed", "photo_cycle"]
             target_mode = button_modes[button_num]
             
             if self.current_mode != target_mode:
@@ -213,9 +197,8 @@ class MyImpressionApp:
         # Different LED patterns for different modes
         mode_patterns = {
             "photo_cycle": 1,    # 1 flash
-            "weather": 2,        # 2 flashes
-            "tumblr_feed": 3,    # 3 flashes
-            "news_feed": 4       # 4 flashes
+            "tumblr_feed": 2,    # 2 flashes
+            "news_feed": 3       # 3 flashes
         }
         
         flash_count = mode_patterns.get(mode_name, 1)
@@ -232,7 +215,7 @@ class MyImpressionApp:
         """Check if mode switch is needed and execute it."""
         if self.switch is not None:
             # Map button number to mode name
-            button_modes = ["photo_cycle", "weather", "tumblr_feed", "news_feed"]
+            button_modes = ["photo_cycle", "tumblr_feed", "news_feed", "photo_cycle"]
             target_mode = button_modes[self.switch]
             
             # Switch to the target mode
