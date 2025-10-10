@@ -119,12 +119,13 @@ class DeviantArtRSSMode:
                 # Convert item to string and use regex to find media:content URLs
                 item_xml = ET.tostring(item, encoding='unicode')
                 
-                # Find media:content URLs with a simple, robust pattern
-                media_content_pattern = r'<media:content[^>]*url="([^"]+)"[^>]*>'
-                media_matches = re.findall(media_content_pattern, item_xml, re.IGNORECASE)
+                # Look for media:content URLs only (no thumbnails)
+                content_pattern = r'<media:content[^>]*url="([^"]+)"[^>]*>'
+                content_matches = re.findall(content_pattern, item_xml, re.IGNORECASE)
                 
-                for img_url in media_matches:
-                    # Filter out small images (thumbnails, avatars, etc.)
+                if content_matches:
+                    # Use the first (and usually only) media:content URL
+                    img_url = content_matches[0]
                     if self._is_valid_image_url(img_url):
                         new_images.append({
                             'url': img_url,
@@ -188,9 +189,8 @@ class DeviantArtRSSMode:
         ]):
             return False
         
-        # Skip media:thumbnail URLs (these are typically smaller thumbnails)
-        if 'thumbnail' in url.lower():
-            return False
+        # Allow media:thumbnail URLs since this feed only has thumbnails
+        # (We'll filter by size instead)
         
         # Must be a valid image URL
         if not any(ext in url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
