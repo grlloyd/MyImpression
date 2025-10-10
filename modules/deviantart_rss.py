@@ -118,7 +118,9 @@ class DeviantArtRSSMode:
             for item in items:
                 # Convert item to string and use regex to find media:content URLs
                 item_xml = ET.tostring(item, encoding='unicode')
-                media_content_pattern = r'<media:content[^>]+url="([^"]+)"[^>]*>'
+                
+                # Find media:content URLs with a simple, robust pattern
+                media_content_pattern = r'<media:content[^>]*url="([^"]+)"[^>]*>'
                 media_matches = re.findall(media_content_pattern, item_xml, re.IGNORECASE)
                 
                 for img_url in media_matches:
