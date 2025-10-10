@@ -28,8 +28,16 @@ class DeviantArtRSSMode:
         
         # Get DeviantArt RSS configuration
         self.deviantart_config = config.get('deviantart_rss', {})
-        self.username = self.deviantart_config.get('username', 'WestOz64')
-        self.rss_url = self._construct_rss_url(self.username)
+        
+        # Support both username and full URL configurations
+        if 'rss_url' in self.deviantart_config:
+            # Use full RSS URL if provided
+            self.rss_url = self.deviantart_config['rss_url']
+            self.username = self._extract_username_from_url(self.rss_url)
+        else:
+            # Fall back to username-based URL construction
+            self.username = self.deviantart_config.get('username', 'WestOz64')
+            self.rss_url = self._construct_rss_url(self.username)
         self.display_time = self.deviantart_config.get('display_time', 15)
         self.max_posts = self.deviantart_config.get('max_posts', 20)
         self.update_interval = self.deviantart_config.get('update_interval', 3600)  # 1 hour
@@ -55,6 +63,32 @@ class DeviantArtRSSMode:
         base_url = "https://backend.deviantart.com/rss.xml"
         query_param = f"q=gallery:{username}"
         return f"{base_url}?{query_param}"
+    
+    def _extract_username_from_url(self, rss_url: str) -> str:
+        """Extract username or query description from RSS URL for display purposes."""
+        try:
+            from urllib.parse import urlparse, parse_qs
+            
+            parsed_url = urlparse(rss_url)
+            query_params = parse_qs(parsed_url.query)
+            
+            # If it's a gallery query, extract the username
+            if 'q' in query_params:
+                q_value = query_params['q'][0]
+                if q_value.startswith('gallery:'):
+                    return q_value[8:]  # Remove 'gallery:' prefix
+                elif q_value.startswith('deviation:'):
+                    return q_value[10:]  # Remove 'deviation:' prefix
+                else:
+                    # For other query types, use the query as display name
+                    return q_value.replace('+', ' ').replace('%20', ' ')
+            
+            # Fallback to a generic name
+            return "Custom RSS Feed"
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to extract username from URL: {e}")
+            return "Custom RSS Feed"
     
     def _fetch_rss_images(self):
         """Fetch images from DeviantArt RSS feed."""
@@ -82,17 +116,13 @@ class DeviantArtRSSMode:
             # Extract image URLs from posts
             new_images = []
             for item in items:
-                # Get post description/content
-                description_elem = item.find('description')
-                if description_elem is not None:
-                    description = description_elem.text or ""
-                    
-                    # Extract image URLs using regex
-                    # Look for img src attributes
-                    img_pattern = r'<img[^>]+src="([^"]+)"[^>]*>'
-                    img_matches = re.findall(img_pattern, description, re.IGNORECASE)
-                    
-                    for img_url in img_matches:
+                # Look for media:content tags (RSS media namespace)
+                media_content_elements = item.findall('.//{http://search.yahoo.com/mrss/}content')
+                
+                for media_content in media_content_elements:
+                    # Get the URL from the media:content tag
+                    img_url = media_content.get('url')
+                    if img_url:
                         # Filter out small images (thumbnails, avatars, etc.)
                         if self._is_valid_image_url(img_url):
                             new_images.append({
@@ -101,7 +131,9 @@ class DeviantArtRSSMode:
                                 'post_link': item.find('link').text if item.find('link') is not None else '',
                                 'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
                             })
-                            self.logger.debug(f"Found DeviantArt image URL: {img_url}")
+                            self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
+                        else:
+                            self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
             
             if new_images:
                 # Remove duplicates while preserving order
@@ -138,6 +170,25 @@ class DeviantArtRSSMode:
         
         # Skip very small DeviantArt thumbnails
         if any(size in url for size in ['50x50', '100x100', '150x150']):
+            return False
+        
+        # Skip DeviantArt error/placeholder images
+        if any(error_indicator in url.lower() for error_indicator in [
+            'error', 'placeholder', 'missing', 'default', 'noimage', 'broken',
+            'ddk91c7',  # This appears to be the specific error image from your log
+            'token='  # Skip tokenized URLs that might be error images
+        ]):
+            return False
+        
+        # Skip images that are too small (likely thumbnails or error images)
+        if any(size_pattern in url for size_pattern in [
+            'w_50', 'h_50', 'w_100', 'h_100', 'w_150', 'h_150',
+            '50w', '100w', '150w'
+        ]):
+            return False
+        
+        # Skip media:thumbnail URLs (these are typically smaller thumbnails)
+        if 'thumbnail' in url.lower():
             return False
         
         # Must be a valid image URL
