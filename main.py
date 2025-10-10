@@ -27,6 +27,7 @@ from modules.button_handler import ButtonHandler
 from modules.photo_cycle import PhotoCycleMode
 from modules.news_feed import NewsFeedMode
 from modules.tumblr_rss import TumblrRSSMode
+from modules.deviantart_rss import DeviantArtRSSMode
 from modules.display_utils import DisplayUtils
 
 
@@ -63,6 +64,7 @@ class MyImpressionApp:
         self.modes = {
             "photo_cycle": PhotoCycleMode(self.inky, self.config, self.display_utils, self),
             "tumblr_rss": TumblrRSSMode(self.inky, self.config, self.display_utils, self),
+            "deviantart_rss": DeviantArtRSSMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self)
         }
         
@@ -110,10 +112,10 @@ class MyImpressionApp:
                 "refresh_rate": 30
             },
             "buttons": {
-                "A": "photo_cycle",
-                "B": "tumblr_rss", 
-                "C": "news_feed",
-                "D": "photo_cycle"
+                "button_1": "photo_cycle",
+                "button_2": "tumblr_rss", 
+                "button_3": "deviantart_rss",
+                "button_4": "news_feed"
             },
             "photo_cycle": {
                 "folder": "./data/photos",
@@ -130,6 +132,14 @@ class MyImpressionApp:
                 "update_interval": 86400,
                 "background_color": "auto",
                 "saturation": 1.0
+            },
+            "deviantart_rss": {
+                "username": "WestOz64",
+                "display_time": 15,
+                "max_posts": 20,
+                "update_interval": 3600,
+                "background_color": "auto",
+                "saturation": 0.5
             },
             "news_feed": {
                 "sources": ["arxiv"],
@@ -149,14 +159,22 @@ class MyImpressionApp:
             return
         self.last_button_press = current_time
         
-        # Map button to number (A=0, B=1, C=2, D=3)
+        # Map button letter to button number (A=0, B=1, C=2, D=3)
         button_map = {"A": 0, "B": 1, "C": 2, "D": 3}
         button_num = button_map.get(button)
         
         if button_num is not None:
-            # Only set switch if it's different from current target
-            button_modes = ["photo_cycle", "tumblr_rss", "news_feed", "photo_cycle"]
-            target_mode = button_modes[button_num]
+            # Get the target mode from configuration
+            button_config_key = f"button_{button_num + 1}"  # button_1, button_2, etc.
+            target_mode = self.config.get("buttons", {}).get(button_config_key)
+            
+            if target_mode is None:
+                self.logger.warning(f"No mode configured for {button_config_key}")
+                return
+            
+            if target_mode not in self.modes:
+                self.logger.warning(f"Unknown mode '{target_mode}' configured for {button_config_key}")
+                return
             
             if self.current_mode != target_mode:
                 self.switch = button_num
@@ -197,7 +215,8 @@ class MyImpressionApp:
         mode_patterns = {
             "photo_cycle": 1,    # 1 flash
             "tumblr_rss": 2,     # 2 flashes
-            "news_feed": 3       # 3 flashes
+            "deviantart_rss": 3, # 3 flashes
+            "news_feed": 4       # 4 flashes
         }
         
         flash_count = mode_patterns.get(mode_name, 1)
@@ -213,12 +232,15 @@ class MyImpressionApp:
     def check_and_switch_mode(self):
         """Check if mode switch is needed and execute it."""
         if self.switch is not None:
-            # Map button number to mode name
-            button_modes = ["photo_cycle", "tumblr_rss", "news_feed", "photo_cycle"]
-            target_mode = button_modes[self.switch]
+            # Get the target mode from configuration
+            button_config_key = f"button_{self.switch + 1}"  # button_1, button_2, etc.
+            target_mode = self.config.get("buttons", {}).get(button_config_key)
             
-            # Switch to the target mode
-            self.switch_mode(target_mode)
+            if target_mode and target_mode in self.modes:
+                # Switch to the target mode
+                self.switch_mode(target_mode)
+            else:
+                self.logger.warning(f"Invalid mode configuration for {button_config_key}: {target_mode}")
             
             # Reset switch flag
             self.switch = None
