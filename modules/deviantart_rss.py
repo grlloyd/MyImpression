@@ -116,24 +116,23 @@ class DeviantArtRSSMode:
             # Extract image URLs from posts
             new_images = []
             for item in items:
-                # Look for media:content tags (RSS media namespace)
-                media_content_elements = item.findall('.//{http://search.yahoo.com/mrss/}content')
+                # Convert item to string and use regex to find media:content URLs
+                item_xml = ET.tostring(item, encoding='unicode')
+                media_content_pattern = r'<media:content[^>]+url="([^"]+)"[^>]*>'
+                media_matches = re.findall(media_content_pattern, item_xml, re.IGNORECASE)
                 
-                for media_content in media_content_elements:
-                    # Get the URL from the media:content tag
-                    img_url = media_content.get('url')
-                    if img_url:
-                        # Filter out small images (thumbnails, avatars, etc.)
-                        if self._is_valid_image_url(img_url):
-                            new_images.append({
-                                'url': img_url,
-                                'post_title': item.find('title').text if item.find('title') is not None else 'Untitled',
-                                'post_link': item.find('link').text if item.find('link') is not None else '',
-                                'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
-                            })
-                            self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
-                        else:
-                            self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
+                for img_url in media_matches:
+                    # Filter out small images (thumbnails, avatars, etc.)
+                    if self._is_valid_image_url(img_url):
+                        new_images.append({
+                            'url': img_url,
+                            'post_title': item.find('title').text if item.find('title') is not None else 'Untitled',
+                            'post_link': item.find('link').text if item.find('link') is not None else '',
+                            'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
+                        })
+                        self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
+                    else:
+                        self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
             
             if new_images:
                 # Remove duplicates while preserving order
