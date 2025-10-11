@@ -251,35 +251,57 @@ class WeatherAPIClient:
     def get_location_name(self) -> str:
         """Get location name from coordinates using reverse geocoding."""
         try:
-            # Use Open-Meteo's free geocoding API
-            geocoding_url = "https://geocoding-api.open-meteo.com/v1/search"
+            # Use Nominatim (OpenStreetMap) free reverse geocoding API
+            geocoding_url = "https://nominatim.openstreetmap.org/reverse"
             params = {
-                'latitude': self.latitude,
-                'longitude': self.longitude,
-                'count': 1,
-                'language': 'en',
-                'format': 'json'
+                'lat': self.latitude,
+                'lon': self.longitude,
+                'format': 'json',
+                'addressdetails': 1,
+                'accept-language': 'en'
             }
             
-            response = requests.get(geocoding_url, params=params, timeout=5)
+            # Add user agent header (required by Nominatim)
+            headers = {
+                'User-Agent': 'MyImpression Weather App (contact@example.com)'
+            }
+            
+            response = requests.get(geocoding_url, params=params, headers=headers, timeout=5)
             response.raise_for_status()
             
             data = response.json()
-            results = data.get('results', [])
+            address = data.get('address', {})
             
-            if results:
-                location = results[0]
-                name = location.get('name', '')
-                country = location.get('country', '')
-                admin1 = location.get('admin1', '')  # State/Province
+            if address:
+                # Extract city/town name
+                city = (address.get('city') or 
+                       address.get('town') or 
+                       address.get('village') or 
+                       address.get('hamlet') or 
+                       address.get('municipality') or
+                       address.get('suburb'))
                 
-                # Format as "City, State, Country" or "City, Country"
-                if admin1 and admin1 != name:
-                    return f"{name}, {admin1}, {country}"
+                # Extract state/province
+                state = (address.get('state') or 
+                        address.get('province') or 
+                        address.get('county'))
+                
+                # Extract country
+                country = address.get('country')
+                
+                # Format the location string
+                if city and country:
+                    if state and state != city:
+                        return f"{city}, {state}, {country}"
+                    else:
+                        return f"{city}, {country}"
+                elif country:
+                    return country
                 else:
-                    return f"{name}, {country}"
+                    # Fallback to coordinates if no useful address found
+                    return self._format_coordinates()
             else:
-                # Fallback to coordinates if no city found
+                # Fallback to coordinates if no address found
                 return self._format_coordinates()
                 
         except Exception as e:
