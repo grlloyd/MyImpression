@@ -131,9 +131,8 @@
             // Try each icon source in order
             for (const source of iconSources) {
                 if (source === 'custom' && weatherIcons.custom) {
-                    // For custom icons, we'll use the filename as a placeholder
-                    // The actual icon loading will be handled by the server
-                    return `custom:${weatherIcons.custom}`;
+                    // Custom icons are now pre-processed as base64 data URLs
+                    return weatherIcons.custom;
                 } else if (source === 'fontawesome' && weatherIcons.fontawesome) {
                     return weatherIcons.fontawesome;
                 } else if (source === 'emoji' && weatherIcons.emoji) {
@@ -249,10 +248,9 @@
             const iconElement = document.getElementById('current-icon');
             const iconContent = getWeatherIcon(current.weather_code, 'large');
             
-            if (iconContent.startsWith('custom:')) {
-                // Handle custom icon - for now, fall back to emoji
-                const fallbackIcon = getWeatherIcon(current.weather_code, 'large');
-                iconElement.innerHTML = `<div class="icon-symbol">${fallbackIcon}</div>`;
+            if (iconContent.startsWith('data:image/')) {
+                // Custom icon as base64 data URL
+                iconElement.innerHTML = `<img src="${iconContent}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
             } else if (iconContent.startsWith('fas ')) {
                 // Font Awesome icon
                 iconElement.innerHTML = `<i class="${iconContent}"></i>`;
@@ -326,7 +324,9 @@
                 
                 const forecastIcon = getWeatherIcon(day.weather_code, 'medium');
                 let iconHtml;
-                if (forecastIcon.startsWith('fas ')) {
+                if (forecastIcon.startsWith('data:image/')) {
+                    iconHtml = `<img src="${forecastIcon}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+                } else if (forecastIcon.startsWith('fas ')) {
                     iconHtml = `<i class="${forecastIcon}"></i>`;
                 } else {
                     iconHtml = `<div class="icon-symbol">${forecastIcon}</div>`;
@@ -361,7 +361,9 @@
                 
                 const hourlyIcon = getWeatherIcon(hour.weather_code, 'small');
                 let hourlyIconHtml;
-                if (hourlyIcon.startsWith('fas ')) {
+                if (hourlyIcon.startsWith('data:image/')) {
+                    hourlyIconHtml = `<img src="${hourlyIcon}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+                } else if (hourlyIcon.startsWith('fas ')) {
                     hourlyIconHtml = `<i class="${hourlyIcon}"></i>`;
                 } else {
                     hourlyIconHtml = `<div class="icon-symbol">${hourlyIcon}</div>`;

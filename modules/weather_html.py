@@ -81,8 +81,29 @@ class WeatherHTMLMode:
         # Update custom icon path from main config
         base_config['custom_icon_path'] = custom_icon_path
         
+        # Pre-process custom icons if using custom source
+        if icon_source == 'custom':
+            self._preprocess_custom_icons(base_config)
+        
         self.logger.info(f"Weather icon source configured as: {icon_source}")
         return base_config
+    
+    def _preprocess_custom_icons(self, config: Dict[str, Any]) -> None:
+        """Pre-process custom icons and replace filenames with base64 data URLs."""
+        icon_mapping = config.get('icon_mapping', {})
+        custom_icon_path = config.get('custom_icon_path', 'assets/icons/weather/')
+        
+        for weather_code, weather_icons in icon_mapping.items():
+            if 'custom' in weather_icons:
+                custom_filename = weather_icons['custom']
+                # Get the base64 data URL for this custom icon
+                base64_icon = self._get_custom_icon_with_path(custom_filename, custom_icon_path, 'large')
+                if base64_icon:
+                    # Replace the filename with the base64 data URL
+                    weather_icons['custom'] = base64_icon
+                    self.logger.debug(f"Pre-processed custom icon for weather code {weather_code}")
+                else:
+                    self.logger.warning(f"Failed to load custom icon: {custom_filename}")
     
     def _get_default_icon_config(self) -> Dict[str, Any]:
         """Get default icon configuration."""
@@ -146,10 +167,10 @@ class WeatherHTMLMode:
         # Final fallback
         return "❓"
     
-    def _get_custom_icon(self, icon_filename: str, size: str = "large") -> Optional[str]:
-        """Get custom icon as base64 data URL."""
+    def _get_custom_icon_with_path(self, icon_filename: str, custom_icon_path: str, size: str = "large") -> Optional[str]:
+        """Get custom icon as base64 data URL with explicit path."""
         try:
-            icon_path = Path(self.icon_config.get("custom_icon_path", "assets/icons/weather/")) / icon_filename
+            icon_path = Path(custom_icon_path) / icon_filename
             
             if not icon_path.exists():
                 self.logger.debug(f"Custom icon not found: {icon_path}")
@@ -179,6 +200,11 @@ class WeatherHTMLMode:
         except Exception as e:
             self.logger.error(f"Error loading custom icon {icon_filename}: {e}")
             return None
+
+    def _get_custom_icon(self, icon_filename: str, size: str = "large") -> Optional[str]:
+        """Get custom icon as base64 data URL."""
+        custom_icon_path = self.icon_config.get("custom_icon_path", "assets/icons/weather/")
+        return self._get_custom_icon_with_path(icon_filename, custom_icon_path, size)
     
     def _setup_browser(self):
         """Setup browser automation for screen capture."""
