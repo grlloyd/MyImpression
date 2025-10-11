@@ -76,7 +76,30 @@ The system uses a JSON configuration file (`config.json`) to manage all settings
     "display_time": 10,
     "random_order": false,
     "supported_formats": ["jpg", "jpeg", "png", "webp"],
-    "background_color": "white"
+    "background_color": "white",
+    "saturation": 0.5,
+    "fill_screen": false,
+    "auto_rotate": false
+  },
+  "tumblr_rss": {
+    "rss_url": "https://handsoffmydinosaur.tumblr.com/rss",
+    "display_time": 300,
+    "max_posts": 300,
+    "update_interval": 86400,
+    "background_color": "auto",
+    "saturation": 1.0,
+    "fill_screen": false,
+    "auto_rotate": false
+  },
+  "deviantart_rss": {
+    "username": "WestOz64",
+    "display_time": 15,
+    "max_posts": 20,
+    "update_interval": 3600,
+    "background_color": "auto",
+    "saturation": 0.5,
+    "fill_screen": false,
+    "auto_rotate": false
   }
 }
 ```
@@ -107,6 +130,27 @@ See `SERVICE_SETUP.md` for detailed service management instructions.
 3. Press button A to start/switch to photo cycle mode
 4. Photos will cycle automatically based on the `display_time` setting
 5. Background color for image bars can be set in `config.json`
+
+### Image Processing Options
+
+All image display modes support the following configuration options:
+
+- **`fill_screen`** (boolean, default: false): When enabled, images will fill the entire screen, cropping if necessary to maintain aspect ratio. When disabled, images will fit within screen bounds with letterboxing/pillarboxing.
+
+- **`auto_rotate`** (boolean, default: false): When enabled, images will be automatically rotated 90 degrees if it results in a better fit for the display dimensions.
+
+- **`saturation`** (float, 0.0-1.0, default varies by mode): Controls color saturation for the 6-color display.
+
+- **`background_color`** (string or "auto"): Background color for letterboxing/pillarboxing. Can be "white", "black", "gray", "light_gray", "dark_gray", or "auto" to detect from image corners.
+
+### RSS Feed Modes
+
+The system also includes RSS feed modes for displaying images from external sources:
+
+- **Tumblr RSS Mode**: Displays images from Tumblr blog RSS feeds
+- **DeviantArt RSS Mode**: Displays images from DeviantArt gallery RSS feeds
+
+Both modes support the same image processing options as Photo Cycle Mode.
 
 ### Running the Application
 

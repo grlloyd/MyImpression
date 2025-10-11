@@ -31,6 +31,8 @@ class PhotoCycleMode:
         self.supported_formats = self.photo_config.get('supported_formats', ['jpg', 'jpeg', 'png', 'webp'])
         self.background_color = self.photo_config.get('background_color', 'white')
         self.saturation = self.photo_config.get('saturation', 0.5)
+        self.fill_screen = self.photo_config.get('fill_screen', False)
+        self.auto_rotate = self.photo_config.get('auto_rotate', False)
         
         # Photo list and current index
         self.photos = []
@@ -96,7 +98,13 @@ class PhotoCycleMode:
                 img = img.convert('RGB')
             
             # Resize to display resolution while maintaining aspect ratio
-            img = self._resize_with_aspect_ratio(img, self.inky.resolution)
+            bg_color = self._get_background_color()
+            img = self.display_utils.resize_with_aspect_ratio(
+                img, self.inky.resolution, 
+                fill_screen=self.fill_screen, 
+                auto_rotate=self.auto_rotate,
+                bg_color=bg_color
+            )
             
             # Set image directly with saturation
             try:
@@ -111,34 +119,6 @@ class PhotoCycleMode:
             self.logger.error(f"Error processing image {photo_path}: {e}")
             return None
     
-    def _resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple) -> Image.Image:
-        """Resize image while maintaining aspect ratio."""
-        target_width, target_height = target_size
-        img_width, img_height = img.size
-        
-        # Calculate scaling factor to fit within target size
-        scale_w = target_width / img_width
-        scale_h = target_height / img_height
-        scale = min(scale_w, scale_h)
-        
-        # Calculate new size
-        new_width = int(img_width * scale)
-        new_height = int(img_height * scale)
-        
-        # Resize the image
-        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        
-        # Create a new image with target size and paste the resized image in the center
-        bg_color = self._get_background_color()
-        new_img = Image.new('RGB', target_size, bg_color)
-        
-        # Calculate position to center the image
-        x = (target_width - new_width) // 2
-        y = (target_height - new_height) // 2
-        
-        new_img.paste(img, (x, y))
-        
-        return new_img
     
     def _get_background_color(self) -> tuple:
         """Get background color as RGB tuple."""

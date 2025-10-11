@@ -43,6 +43,8 @@ class DeviantArtRSSMode:
         self.update_interval = self.deviantart_config.get('update_interval', 3600)  # 1 hour
         self.background_color = self.deviantart_config.get('background_color', 'white')
         self.saturation = self.deviantart_config.get('saturation', 0.5)
+        self.fill_screen = self.deviantart_config.get('fill_screen', False)
+        self.auto_rotate = self.deviantart_config.get('auto_rotate', False)
         
         # Image cache and current state
         self.cached_images = []
@@ -309,42 +311,6 @@ class DeviantArtRSSMode:
             self.logger.warning(f"Failed to detect background color: {e}")
             return self._get_background_color()
     
-    def _resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple, bg_color: tuple = None) -> Image.Image:
-        """Resize image while maintaining aspect ratio."""
-        target_width, target_height = target_size
-        img_width, img_height = img.size
-        
-        # Calculate scaling factor to fit within target size
-        scale_w = target_width / img_width
-        scale_h = target_height / img_height
-        scale = min(scale_w, scale_h)
-        
-        # Calculate new size
-        new_width = int(img_width * scale)
-        new_height = int(img_height * scale)
-        
-        # Resize the image
-        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        
-        # Get background color - either from parameter, image, or configured color
-        if bg_color is not None:
-            # Use the provided background color
-            pass
-        elif self.background_color == "auto":
-            bg_color = self._get_image_background_color(img)
-        else:
-            bg_color = self._get_background_color()
-        
-        # Create a new image with target size and paste the resized image in the center
-        new_img = Image.new('RGB', target_size, bg_color)
-        
-        # Calculate position to center the image
-        x = (target_width - new_width) // 2
-        y = (target_height - new_height) // 2
-        
-        new_img.paste(img, (x, y))
-        
-        return new_img
     
     def _get_background_color(self) -> tuple:
         """Get background color as RGB tuple."""
@@ -438,7 +404,12 @@ class DeviantArtRSSMode:
             img, bg_color = result
             
             # Resize to display resolution while maintaining aspect ratio
-            img = self._resize_with_aspect_ratio(img, self.inky.resolution, bg_color)
+            img = self.display_utils.resize_with_aspect_ratio(
+                img, self.inky.resolution, 
+                fill_screen=self.fill_screen, 
+                auto_rotate=self.auto_rotate,
+                bg_color=bg_color
+            )
             
             # Set image directly with saturation
             try:

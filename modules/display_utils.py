@@ -242,3 +242,150 @@ class DisplayUtils:
         palette_img.paste(img)
         
         return palette_img
+    
+    def resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple, 
+                                fill_screen: bool = False, auto_rotate: bool = False,
+                                bg_color: tuple = None) -> Image.Image:
+        """
+        Resize image while maintaining aspect ratio with optional fill screen and rotation.
+        
+        Args:
+            img: PIL Image to resize
+            target_size: (width, height) target dimensions
+            fill_screen: If True, fill the entire screen (may crop image)
+            auto_rotate: If True, rotate image for best fit
+            bg_color: Background color as RGB tuple (default: white)
+        
+        Returns:
+            Resized PIL Image
+        """
+        target_width, target_height = target_size
+        img_width, img_height = img.size
+        
+        # Auto-rotate for best fit if enabled
+        if auto_rotate:
+            img = self._rotate_for_best_fit(img, target_size)
+            img_width, img_height = img.size
+        
+        if fill_screen:
+            # Fill screen mode - crop image to fill entire screen
+            img = self._resize_to_fill_screen(img, target_size, bg_color)
+        else:
+            # Fit mode - resize to fit within screen bounds
+            img = self._resize_to_fit_screen(img, target_size, bg_color)
+        
+        return img
+    
+    def _rotate_for_best_fit(self, img: Image.Image, target_size: tuple) -> Image.Image:
+        """
+        Rotate image to achieve the best fit for the target dimensions.
+        
+        Args:
+            img: PIL Image to potentially rotate
+            target_size: (width, height) target dimensions
+        
+        Returns:
+            Rotated PIL Image (if rotation improves fit)
+        """
+        target_width, target_height = target_size
+        img_width, img_height = img.size
+        
+        # Calculate how well the current orientation fits
+        current_fit_ratio = min(target_width / img_width, target_height / img_height)
+        
+        # Calculate how well the rotated orientation would fit
+        rotated_fit_ratio = min(target_width / img_height, target_height / img_width)
+        
+        # If rotating would give us a better fit (larger scale factor), rotate the image
+        if rotated_fit_ratio > current_fit_ratio:
+            self.logger.debug(f"Rotating image for better fit: {current_fit_ratio:.3f} -> {rotated_fit_ratio:.3f}")
+            return img.rotate(90, expand=True)
+        
+        return img
+    
+    def _resize_to_fill_screen(self, img: Image.Image, target_size: tuple, 
+                              bg_color: tuple = None) -> Image.Image:
+        """
+        Resize image to fill the entire screen, cropping if necessary.
+        
+        Args:
+            img: PIL Image to resize
+            target_size: (width, height) target dimensions
+            bg_color: Background color as RGB tuple (default: white)
+        
+        Returns:
+            Resized PIL Image that fills the screen
+        """
+        target_width, target_height = target_size
+        img_width, img_height = img.size
+        
+        # Calculate scaling factor to fill the screen (use max scale to ensure coverage)
+        scale_w = target_width / img_width
+        scale_h = target_height / img_height
+        scale = max(scale_w, scale_h)  # Use max to fill screen
+        
+        # Calculate new size
+        new_width = int(img_width * scale)
+        new_height = int(img_height * scale)
+        
+        # Resize the image
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Get background color
+        if bg_color is None:
+            bg_color = (255, 255, 255)  # White default
+        
+        # Create a new image with target size and background color
+        new_img = Image.new('RGB', target_size, bg_color)
+        
+        # Calculate position to center the image (may be negative if image is larger)
+        x = (target_width - new_width) // 2
+        y = (target_height - new_height) // 2
+        
+        # Paste the resized image, cropping if necessary
+        new_img.paste(img, (x, y))
+        
+        return new_img
+    
+    def _resize_to_fit_screen(self, img: Image.Image, target_size: tuple, 
+                             bg_color: tuple = None) -> Image.Image:
+        """
+        Resize image to fit within screen bounds while maintaining aspect ratio.
+        
+        Args:
+            img: PIL Image to resize
+            target_size: (width, height) target dimensions
+            bg_color: Background color as RGB tuple (default: white)
+        
+        Returns:
+            Resized PIL Image that fits within screen bounds
+        """
+        target_width, target_height = target_size
+        img_width, img_height = img.size
+        
+        # Calculate scaling factor to fit within target size
+        scale_w = target_width / img_width
+        scale_h = target_height / img_height
+        scale = min(scale_w, scale_h)  # Use min to fit within bounds
+        
+        # Calculate new size
+        new_width = int(img_width * scale)
+        new_height = int(img_height * scale)
+        
+        # Resize the image
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Get background color
+        if bg_color is None:
+            bg_color = (255, 255, 255)  # White default
+        
+        # Create a new image with target size and paste the resized image in the center
+        new_img = Image.new('RGB', target_size, bg_color)
+        
+        # Calculate position to center the image
+        x = (target_width - new_width) // 2
+        y = (target_height - new_height) // 2
+        
+        new_img.paste(img, (x, y))
+        
+        return new_img

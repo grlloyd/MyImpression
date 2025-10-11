@@ -123,7 +123,9 @@ class MyImpressionApp:
                 "random_order": False,
                 "supported_formats": ["jpg", "jpeg", "png", "webp"],
                 "background_color": "white",
-                "saturation": 0.5
+                "saturation": 0.5,
+                "fill_screen": False,
+                "auto_rotate": False
             },
             "tumblr_rss": {
                 "rss_url": "https://handsoffmydinosaur.tumblr.com/rss",
@@ -131,7 +133,9 @@ class MyImpressionApp:
                 "max_posts": 300,
                 "update_interval": 86400,
                 "background_color": "auto",
-                "saturation": 1.0
+                "saturation": 1.0,
+                "fill_screen": False,
+                "auto_rotate": False
             },
             "deviantart_rss": {
                 "username": "WestOz64",
@@ -139,7 +143,9 @@ class MyImpressionApp:
                 "max_posts": 20,
                 "update_interval": 3600,
                 "background_color": "auto",
-                "saturation": 0.5
+                "saturation": 0.5,
+                "fill_screen": False,
+                "auto_rotate": False
             },
             "news_feed": {
                 "sources": ["arxiv"],
