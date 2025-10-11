@@ -88,6 +88,10 @@ class WeatherAPIClient:
         daily = api_data.get('daily', {})
         hourly = api_data.get('hourly', {})
         
+        # Get the actual coordinates returned by the API
+        api_latitude = api_data.get('latitude', self.latitude)
+        api_longitude = api_data.get('longitude', self.longitude)
+        
         # Process current weather
         current_weather = {
             'temperature': round(current.get('temperature_2m', 0)),
@@ -159,9 +163,9 @@ class WeatherAPIClient:
             'daily': daily_forecast,
             'hourly': hourly_forecast,
             'location': {
-                'name': self.get_location_name(),
-                'latitude': self.latitude,
-                'longitude': self.longitude
+                'name': self.get_location_name_from_coords(api_latitude, api_longitude),
+                'latitude': api_latitude,
+                'longitude': api_longitude
             }
         }
     
@@ -249,13 +253,17 @@ class WeatherAPIClient:
             return "??"
     
     def get_location_name(self) -> str:
-        """Get location name from coordinates using reverse geocoding."""
+        """Get location name from configured coordinates using reverse geocoding."""
+        return self.get_location_name_from_coords(self.latitude, self.longitude)
+    
+    def get_location_name_from_coords(self, latitude: float, longitude: float) -> str:
+        """Get location name from specific coordinates using reverse geocoding."""
         try:
             # Use Nominatim (OpenStreetMap) free reverse geocoding API
             geocoding_url = "https://nominatim.openstreetmap.org/reverse"
             params = {
-                'lat': self.latitude,
-                'lon': self.longitude,
+                'lat': latitude,
+                'lon': longitude,
                 'format': 'json',
                 'addressdetails': 1,
                 'accept-language': 'en'
@@ -299,23 +307,27 @@ class WeatherAPIClient:
                     return country
                 else:
                     # Fallback to coordinates if no useful address found
-                    return self._format_coordinates()
+                    return self._format_coordinates_from_coords(latitude, longitude)
             else:
                 # Fallback to coordinates if no address found
-                return self._format_coordinates()
+                return self._format_coordinates_from_coords(latitude, longitude)
                 
         except Exception as e:
-            self.logger.warning(f"Failed to get city name: {e}")
+            self.logger.warning(f"Failed to get city name for {latitude}, {longitude}: {e}")
             # Fallback to coordinates
-            return self._format_coordinates()
+            return self._format_coordinates_from_coords(latitude, longitude)
     
     def _format_coordinates(self) -> str:
-        """Format coordinates as a readable location string."""
-        lat_dir = "N" if self.latitude >= 0 else "S"
-        lon_dir = "E" if self.longitude >= 0 else "W"
+        """Format configured coordinates as a readable location string."""
+        return self._format_coordinates_from_coords(self.latitude, self.longitude)
+    
+    def _format_coordinates_from_coords(self, latitude: float, longitude: float) -> str:
+        """Format specific coordinates as a readable location string."""
+        lat_dir = "N" if latitude >= 0 else "S"
+        lon_dir = "E" if longitude >= 0 else "W"
         
-        lat_abs = abs(self.latitude)
-        lon_abs = abs(self.longitude)
+        lat_abs = abs(latitude)
+        lon_abs = abs(longitude)
         
         return f"{lat_abs:.2f}°{lat_dir}, {lon_abs:.2f}°{lon_dir}"
     
