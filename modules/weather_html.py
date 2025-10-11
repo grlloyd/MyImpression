@@ -27,8 +27,8 @@ class WeatherHTMLMode:
         self.main_app = main_app
         self.logger = logging.getLogger(__name__)
         
-        # Get weather configuration
-        self.weather_config = config.get('weather', {})
+        # Get weather configuration from weather_html section (consolidated)
+        self.weather_config = config.get('weather_html', {})
         self.display_time = self.weather_config.get('display_time', 300)  # 5 minutes
         self.saturation = self.weather_config.get('saturation', 0.5)
         

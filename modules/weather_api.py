@@ -19,8 +19,8 @@ class WeatherAPIClient:
         self.config = config
         self.logger = logging.getLogger(__name__)
         
-        # Get weather configuration
-        self.weather_config = config.get('weather', {})
+        # Get weather configuration from weather_html section (consolidated)
+        self.weather_config = config.get('weather_html', {})
         self.latitude = self.weather_config.get('latitude', 51.5074)  # Default to London
         self.longitude = self.weather_config.get('longitude', -0.1278)
         self.update_interval = self.weather_config.get('update_interval', 1800)  # 30 minutes
