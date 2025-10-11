@@ -229,19 +229,38 @@ class DisplayUtils:
         # Resize to display resolution
         img = img.resize(self.inky.resolution, Image.Resampling.LANCZOS)
         
-        # Convert to palette mode with our color palette
-        if img.mode != 'P':
-            # Convert to RGB first, then to palette
+        # Convert to RGB if not already
+        if img.mode != 'RGB':
             img = img.convert('RGB')
         
-        # Create palette image
-        palette_img = self.create_image_with_palette()
+        # Create a new image with the proper palette
+        palette_img = Image.new('P', self.inky.resolution)
         
-        # Copy the resized image to the palette image
-        # This is a simple approach - in practice you might want more sophisticated dithering
-        palette_img.paste(img)
+        # Set up the palette for 6-color display
+        palette = []
+        for color in self.colors:
+            if color == self.BLACK:
+                palette.extend([0, 0, 0])  # Black
+            elif color == self.WHITE:
+                palette.extend([255, 255, 255])  # White
+            elif color == self.GREEN:
+                palette.extend([0, 255, 0])  # Green
+            elif color == self.BLUE:
+                palette.extend([0, 0, 255])  # Blue
+            elif color == self.RED:
+                palette.extend([255, 0, 0])  # Red
+            elif color == self.YELLOW:
+                palette.extend([255, 255, 0])  # Yellow
+            else:
+                palette.extend([128, 128, 128])  # Gray fallback
         
-        return palette_img
+        palette_img.putpalette(palette)
+        
+        # Convert RGB image to palette using quantize
+        # This properly maps RGB colors to the closest palette colors
+        img_palette = img.quantize(palette=palette_img, dither=Image.Dither.FLOYDSTEINBERG)
+        
+        return img_palette
     
     def resize_with_aspect_ratio(self, img: Image.Image, target_size: tuple, 
                                 fill_screen: bool = False, auto_rotate: bool = False,
