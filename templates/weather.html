@@ -144,11 +144,6 @@
             return '❓'; // Final fallback
         }
         
-        // Legacy function for backward compatibility
-        const weatherIcons = {};
-        for (const [code, config] of Object.entries(iconConfig.icon_mapping || {})) {
-            weatherIcons[code] = config.emoji || '❓';
-        }
 
         // Weather code to description mapping
         const weatherDescriptions = {
@@ -196,10 +191,6 @@
             return date.toLocaleDateString('en-US', { 
                 weekday: 'short' 
             });
-        }
-
-        function getWeatherIcon(weatherCode) {
-            return weatherIcons[weatherCode] || 'fas fa-question';
         }
 
         function getWeatherDescription(weatherCode) {
