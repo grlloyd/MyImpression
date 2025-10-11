@@ -393,9 +393,9 @@
             
             // Update the display
             document.getElementById('daily-high-low').innerHTML = `
-                <span class="daily-high">${tempIconHtml}${dailyHigh}°</span>
-                <span class="daily-low">${tempIconHtml}${dailyLow}°</span>
-                <span class="daily-max-precip">${precipIconHtml}${maxPrecip}%</span>
+                <span class="daily-high">${tempIconHtml}<span style="font-weight: 700;">${dailyHigh}°</span></span>
+                <span class="daily-low">${tempIconHtml}<span style="font-weight: 700;">${dailyLow}°</span></span>
+                <span class="daily-max-precip">${precipIconHtml}<span style="font-weight: 700;">${maxPrecip}%</span></span>
             `;
         }
 
