@@ -25,7 +25,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 6px;
-    gap: 6px;
+    gap: 4px;
 }
 
 /* Header Section */
@@ -187,7 +187,7 @@ body {
 .hourly-section {
     flex: 0 0 70px;
     background: #ffffff;
-    padding: 4px;
+    padding: 2px;
 }
 
 .hourly-scroll {
@@ -244,7 +244,7 @@ body {
 .forecast-section {
     flex: 0 0 110px;
     background: #ffffff;
-    padding: 4px;
+    padding: 2px;
 }
 
 .forecast-grid {
