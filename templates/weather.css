@@ -162,7 +162,7 @@ body {
 }
 
 .feels-like {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 500;
     color: #000000;
 }
@@ -179,21 +179,21 @@ body {
 
 .daily-high {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 700;
     color: #ff4444;
     line-height: 1;
 }
 
 .daily-low {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 700;
     color: #4444ff;
     line-height: 1;
 }
 
 .daily-max-precip {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 700;
     color: #000000;
     line-height: 1;
 }
