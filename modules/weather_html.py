@@ -132,7 +132,9 @@ class WeatherHTMLMode:
             'sunset': 'sunset.png',
             'humidity': 'humidity.png',
             'uv_index': 'uv-index.png',
-            'air_quality': 'air-quality.png'
+            'air_quality': 'air-quality.png',
+            'temperature': 'temperature.png',
+            'precipitation': 'humidity.png'  # Use humidity icon for precipitation
         }
         
         # Add metric icons to config if they don't exist

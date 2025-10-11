@@ -258,6 +258,14 @@
             return weatherDescriptions[weatherCode] || 'Unknown';
         }
 
+        function getTemperatureIcon() {
+            return getMetricIcon('temperature');
+        }
+        
+        function getPrecipitationIcon() {
+            return getMetricIcon('precipitation');
+        }
+
         function getMetricIcon(metricName) {
             const iconSources = iconConfig.icon_sources || ['emoji'];
             
@@ -301,6 +309,16 @@
                     'custom': 'air-quality.png',
                     'fontawesome': 'fas fa-wind',
                     'emoji': '🌬️'
+                },
+                'temperature': {
+                    'custom': 'temperature.png',
+                    'fontawesome': 'fas fa-thermometer-half',
+                    'emoji': '🌡️'
+                },
+                'precipitation': {
+                    'custom': 'humidity.png',
+                    'fontawesome': 'fas fa-tint',
+                    'emoji': '💧'
                 }
             };
             
@@ -311,11 +329,8 @@
                     if (iconConfig.metric_icons && iconConfig.metric_icons[metricName]) {
                         return iconConfig.metric_icons[metricName];
                     }
-                    // Fallback to loading the icon file
-                    const customIcon = getCustomIcon(metricIcons[metricName]['custom'], 'small');
-                    if (customIcon) {
-                        return customIcon;
-                    }
+                    // If no preprocessed icon available, skip to next source
+                    continue;
                 } else if (metricIcons[metricName]?.[source]) {
                     return metricIcons[metricName][source];
                 }
@@ -418,6 +433,30 @@
                     iconHtml = `<div class="icon-symbol">${forecastIcon}</div>`;
                 }
                 
+                // Get custom icons for temperature and precipitation
+                const tempIcon = getTemperatureIcon();
+                const precipIcon = getPrecipitationIcon();
+                
+                // Format temperature icon for forecast
+                let tempIconHtml;
+                if (tempIcon.startsWith('data:image/')) {
+                    tempIconHtml = `<img src="${tempIcon}" alt="Temperature" style="width: 20px; height: 20px; object-fit: contain; display: inline-block; vertical-align: middle;">`;
+                } else if (tempIcon.startsWith('fas ')) {
+                    tempIconHtml = `<i class="${tempIcon}" style="font-size: 20px; vertical-align: middle;"></i>`;
+                } else {
+                    tempIconHtml = tempIcon;
+                }
+                
+                // Format precipitation icon for forecast
+                let precipIconHtml;
+                if (precipIcon.startsWith('data:image/')) {
+                    precipIconHtml = `<img src="${precipIcon}" alt="Precipitation" style="width: 20px; height: 20px; object-fit: contain; display: inline-block; vertical-align: middle;">`;
+                } else if (precipIcon.startsWith('fas ')) {
+                    precipIconHtml = `<i class="${precipIcon}" style="font-size: 20px; vertical-align: middle;"></i>`;
+                } else {
+                    precipIconHtml = precipIcon;
+                }
+                
                 forecastItem.innerHTML = `
                     <div class="forecast-day">${formatDate(day.time)}</div>
                     <div class="forecast-bottom">
@@ -425,9 +464,9 @@
                             ${iconHtml}
                         </div>
                         <div class="forecast-temps">
-                            <span class="temp-high">${day.temp_max}°</span>
-                            <span class="temp-low">${day.temp_min}°</span>
-                            <span class="forecast-precip">💧${day.precipitation_probability || 0}%</span>
+                            <span class="temp-high">${tempIconHtml}${day.temp_max}°</span>
+                            <span class="temp-low">${tempIconHtml}${day.temp_min}°</span>
+                            <span class="forecast-precip">${precipIconHtml}${day.precipitation_probability || 0}%</span>
                         </div>
                     </div>
                 `;
@@ -457,13 +496,37 @@
                     hourlyIconHtml = `<div class="icon-symbol">${hourlyIcon}</div>`;
                 }
                 
+                // Get custom icons for temperature and precipitation
+                const tempIcon = getTemperatureIcon();
+                const precipIcon = getPrecipitationIcon();
+                
+                // Format temperature icon
+                let tempIconHtml;
+                if (tempIcon.startsWith('data:image/')) {
+                    tempIconHtml = `<img src="${tempIcon}" alt="Temperature" style="width: 16px; height: 16px; object-fit: contain; display: inline-block; vertical-align: middle;">`;
+                } else if (tempIcon.startsWith('fas ')) {
+                    tempIconHtml = `<i class="${tempIcon}" style="font-size: 16px; vertical-align: middle;"></i>`;
+                } else {
+                    tempIconHtml = tempIcon;
+                }
+                
+                // Format precipitation icon
+                let precipIconHtml;
+                if (precipIcon.startsWith('data:image/')) {
+                    precipIconHtml = `<img src="${precipIcon}" alt="Precipitation" style="width: 16px; height: 16px; object-fit: contain; display: inline-block; vertical-align: middle;">`;
+                } else if (precipIcon.startsWith('fas ')) {
+                    precipIconHtml = `<i class="${precipIcon}" style="font-size: 16px; vertical-align: middle;"></i>`;
+                } else {
+                    precipIconHtml = precipIcon;
+                }
+                
                 hourlyItem.innerHTML = `
                     <div class="hourly-time">${formatTime(hour.time)}</div>
                     <div class="hourly-icon">
                         ${hourlyIconHtml}
                     </div>
-                    <div class="hourly-temp">${hour.temperature}°</div>
-                    <div class="hourly-precip">💧${hour.precipitation_probability || 0}%</div>
+                    <div class="hourly-temp">${tempIconHtml}${hour.temperature}°</div>
+                    <div class="hourly-precip">${precipIconHtml}${hour.precipitation_probability || 0}%</div>
                 `;
                 
                 hourlyScroll.appendChild(hourlyItem);
