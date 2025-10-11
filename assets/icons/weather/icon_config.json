@@ -26,7 +26,7 @@
     },
     "2": {
       "custom": "partly_cloudy.png",
-      "custom_night": "partly_cloudy-night.png",
+      "custom_night": "partly-cloudy-night.png",
       "fontawesome": "fas fa-cloud-sun",
       "fontawesome_night": "fas fa-cloud-moon",
       "emoji": "⛅",
