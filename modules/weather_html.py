@@ -84,6 +84,7 @@ class WeatherHTMLMode:
         # Pre-process custom icons if using custom source
         if icon_source == 'custom':
             self._preprocess_custom_icons(base_config)
+            self._preprocess_custom_metric_icons(base_config)
         
         self.logger.info(f"Weather icon source configured as: {icon_source}")
         return base_config
@@ -104,6 +105,35 @@ class WeatherHTMLMode:
                     self.logger.debug(f"Pre-processed custom icon for weather code {weather_code}")
                 else:
                     self.logger.warning(f"Failed to load custom icon: {custom_filename}")
+    
+    def _preprocess_custom_metric_icons(self, config: Dict[str, Any]) -> None:
+        """Pre-process custom metric icons and replace filenames with base64 data URLs."""
+        custom_icon_path = config.get('custom_icon_path', 'assets/icons/weather/')
+        
+        # Define metric icon filenames
+        metric_icons = {
+            'sunrise': 'sunrise.png',
+            'wind': 'wind.png', 
+            'pressure': 'pressure.png',
+            'visibility': 'visibility.png',
+            'sunset': 'sunset.png',
+            'humidity': 'humidity.png',
+            'uv_index': 'uv-index.png',
+            'air_quality': 'air-quality.png'
+        }
+        
+        # Add metric icons to config if they don't exist
+        if 'metric_icons' not in config:
+            config['metric_icons'] = {}
+        
+        for metric_name, filename in metric_icons.items():
+            # Get the base64 data URL for this custom metric icon
+            base64_icon = self._get_custom_icon_with_path(filename, custom_icon_path, 'small')
+            if base64_icon:
+                config['metric_icons'][metric_name] = base64_icon
+                self.logger.debug(f"Pre-processed custom metric icon for {metric_name}")
+            else:
+                self.logger.warning(f"Failed to load custom metric icon: {filename}")
     
     def _get_default_icon_config(self) -> Dict[str, Any]:
         """Get default icon configuration."""

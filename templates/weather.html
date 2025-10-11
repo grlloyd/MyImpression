@@ -15,7 +15,10 @@
             <div class="current-left">
                 <!-- Location and Date -->
                 <div class="location-date-section">
-                    <h1 class="location" id="location-name">Loading...</h1>
+                    <div class="location-display">
+                        <h1 class="location-city" id="location-city">Loading...</h1>
+                        <h2 class="location-country" id="location-country"></h2>
+                    </div>
                     <div class="date-display" id="current-date">Thursday, March 13</div>
                 </div>
                 
@@ -200,45 +203,69 @@
 
         function getMetricIcon(metricName) {
             const iconSources = iconConfig.icon_sources || ['emoji'];
-            const source = iconSources[0]; // Use the primary icon source
             
             const metricIcons = {
                 'sunrise': {
+                    'custom': 'sunrise.png',
                     'fontawesome': 'fas fa-sun',
                     'emoji': '🌅'
                 },
                 'wind': {
+                    'custom': 'wind.png',
                     'fontawesome': 'fas fa-wind',
                     'emoji': '💨'
                 },
                 'pressure': {
+                    'custom': 'pressure.png',
                     'fontawesome': 'fas fa-tachometer-alt',
                     'emoji': '📊'
                 },
                 'visibility': {
+                    'custom': 'visibility.png',
                     'fontawesome': 'fas fa-eye',
                     'emoji': '👁️'
                 },
                 'sunset': {
+                    'custom': 'sunset.png',
                     'fontawesome': 'fas fa-sun',
                     'emoji': '🌇'
                 },
                 'humidity': {
+                    'custom': 'humidity.png',
                     'fontawesome': 'fas fa-tint',
                     'emoji': '💧'
                 },
                 'uv_index': {
+                    'custom': 'uv-index.png',
                     'fontawesome': 'fas fa-sun',
                     'emoji': '☀️'
                 },
                 'air_quality': {
+                    'custom': 'air-quality.png',
                     'fontawesome': 'fas fa-wind',
                     'emoji': '🌬️'
                 }
             };
             
-            const icon = metricIcons[metricName]?.[source] || metricIcons[metricName]?.['emoji'] || '❓';
-            return icon;
+            // Try each icon source in order
+            for (const source of iconSources) {
+                if (source === 'custom' && metricIcons[metricName]?.['custom']) {
+                    // Check if we have a preprocessed base64 icon from the config
+                    if (iconConfig.metric_icons && iconConfig.metric_icons[metricName]) {
+                        return iconConfig.metric_icons[metricName];
+                    }
+                    // Fallback to loading the icon file
+                    const customIcon = getCustomIcon(metricIcons[metricName]['custom'], 'small');
+                    if (customIcon) {
+                        return customIcon;
+                    }
+                } else if (metricIcons[metricName]?.[source]) {
+                    return metricIcons[metricName][source];
+                }
+            }
+            
+            // Final fallback
+            return metricIcons[metricName]?.['emoji'] || '❓';
         }
 
         function updateCurrentWeather() {
@@ -397,7 +424,10 @@
                     const metricName = metric.replace('-', '_');
                     const icon = getMetricIcon(metricName);
                     
-                    if (icon.startsWith('fas ')) {
+                    if (icon.startsWith('data:image/')) {
+                        // Custom icon (base64 data URL)
+                        iconElement.innerHTML = `<img src="${icon}" alt="${metric}" style="width: 24px; height: 24px; object-fit: contain;">`;
+                    } else if (icon.startsWith('fas ')) {
                         // Font Awesome icon
                         iconElement.innerHTML = `<i class="${icon}"></i>`;
                     } else {
@@ -412,9 +442,24 @@
         function initializeWeather() {
             // Update location and date
             if (weatherData && weatherData.location) {
-                document.getElementById('location-name').textContent = weatherData.location.name;
+                const locationName = weatherData.location.name;
+                const locationParts = locationName.split(', ');
+                
+                if (locationParts.length >= 2) {
+                    // Split into city and country
+                    const city = locationParts[0];
+                    const country = locationParts.slice(1).join(', '); // Handle countries with commas
+                    
+                    document.getElementById('location-city').textContent = city;
+                    document.getElementById('location-country').textContent = country;
+                } else {
+                    // Fallback if format is unexpected
+                    document.getElementById('location-city').textContent = locationName;
+                    document.getElementById('location-country').textContent = '';
+                }
             } else {
-                document.getElementById('location-name').textContent = 'Unknown Location';
+                document.getElementById('location-city').textContent = 'Unknown Location';
+                document.getElementById('location-country').textContent = '';
             }
             const now = new Date();
             document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { 

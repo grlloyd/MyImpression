@@ -297,12 +297,9 @@ class WeatherAPIClient:
                 # Extract country
                 country = address.get('country')
                 
-                # Format the location string
+                # Format the location string as "City, Country"
                 if city and country:
-                    if state and state != city:
-                        return f"{city}, {state}, {country}"
-                    else:
-                        return f"{city}, {country}"
+                    return f"{city}, {country}"
                 elif country:
                     return country
                 else:
