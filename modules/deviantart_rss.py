@@ -116,26 +116,28 @@ class DeviantArtRSSMode:
             # Extract image URLs from posts
             new_images = []
             for item in items:
-                # Convert item to string and use regex to find media:content URLs
-                item_xml = ET.tostring(item, encoding='unicode')
-                
-                # Look for media:content URLs only (no thumbnails)
-                content_pattern = r'<media:content[^>]*url="([^"]+)"[^>]*>'
-                content_matches = re.findall(content_pattern, item_xml, re.IGNORECASE)
-                
-                if content_matches:
-                    # Use the first (and usually only) media:content URL
-                    img_url = content_matches[0]
-                    if self._is_valid_image_url(img_url):
-                        new_images.append({
-                            'url': img_url,
-                            'post_title': item.find('title').text if item.find('title') is not None else 'Untitled',
-                            'post_link': item.find('link').text if item.find('link') is not None else '',
-                            'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
-                        })
-                        self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
-                    else:
-                        self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
+                # Use ElementTree to find media:content elements (more reliable than regex)
+                try:
+                    # Find all media:content elements using the proper namespace
+                    media_content_elements = item.findall('.//{http://search.yahoo.com/mrss/}content')
+                    
+                    for elem in media_content_elements:
+                        img_url = elem.get('url')
+                        if img_url and self._is_valid_image_url(img_url):
+                            new_images.append({
+                                'url': img_url,
+                                'post_title': item.find('title').text if item.find('title') is not None else 'Untitled',
+                                'post_link': item.find('link').text if item.find('link') is not None else '',
+                                'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
+                            })
+                            self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
+                            break  # Use the first valid media:content URL
+                        else:
+                            self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
+                            
+                except Exception as e:
+                    self.logger.debug(f"Error processing item for media:content: {e}")
+                    continue
             
             if new_images:
                 # Remove duplicates while preserving order
@@ -177,8 +179,7 @@ class DeviantArtRSSMode:
         # Skip DeviantArt error/placeholder images
         if any(error_indicator in url.lower() for error_indicator in [
             'error', 'placeholder', 'missing', 'default', 'noimage', 'broken',
-            'ddk91c7',  # This appears to be the specific error image from your log
-            'token='  # Skip tokenized URLs that might be error images
+            'ddk91c7'  # This appears to be the specific error image from your log
         ]):
             return False
         
@@ -189,8 +190,11 @@ class DeviantArtRSSMode:
         ]):
             return False
         
-        # Allow media:thumbnail URLs since this feed only has thumbnails
-        # (We'll filter by size instead)
+        # Skip very small thumbnail sizes in the URL path
+        if any(size_pattern in url for size_pattern in [
+            '/w_150,', '/h_150,', '/w_100,', '/h_100,', '/w_50,', '/h_50,'
+        ]):
+            return False
         
         # Must be a valid image URL
         if not any(ext in url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
