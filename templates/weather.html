@@ -121,7 +121,7 @@
         const weatherData = {{ weather_data | safe }};
         const iconConfig = {{ icon_config | safe }};
         
-        // Icon system with fallback support
+        // Icon system with fallback support and day/night variants
         function getWeatherIcon(weatherCode, size = 'large') {
             const weatherCodeStr = weatherCode.toString();
             const iconMapping = iconConfig.icon_mapping || {};
@@ -133,19 +133,64 @@
             const weatherIcons = iconMapping[weatherCodeStr];
             const iconSources = iconConfig.icon_sources || ['emoji'];
             
+            // Determine if it's day or night
+            const isNight = isNightTime();
+            
             // Try each icon source in order
             for (const source of iconSources) {
-                if (source === 'custom' && weatherIcons.custom) {
-                    // Custom icons are now pre-processed as base64 data URLs
-                    return weatherIcons.custom;
-                } else if (source === 'fontawesome' && weatherIcons.fontawesome) {
-                    return weatherIcons.fontawesome;
-                } else if (source === 'emoji' && weatherIcons.emoji) {
-                    return weatherIcons.emoji;
+                if (source === 'custom') {
+                    // Check for night variant first if it's night time
+                    if (isNight && weatherIcons.custom_night) {
+                        return weatherIcons.custom_night;
+                    } else if (weatherIcons.custom) {
+                        return weatherIcons.custom;
+                    }
+                } else if (source === 'fontawesome') {
+                    // Check for night variant first if it's night time
+                    if (isNight && weatherIcons.fontawesome_night) {
+                        return weatherIcons.fontawesome_night;
+                    } else if (weatherIcons.fontawesome) {
+                        return weatherIcons.fontawesome;
+                    }
+                } else if (source === 'emoji') {
+                    // Check for night variant first if it's night time
+                    if (isNight && weatherIcons.emoji_night) {
+                        return weatherIcons.emoji_night;
+                    } else if (weatherIcons.emoji) {
+                        return weatherIcons.emoji;
+                    }
                 }
             }
             
             return '❓'; // Final fallback
+        }
+        
+        // Determine if it's currently night time
+        function isNightTime() {
+            if (!weatherData || !weatherData.current) {
+                return false;
+            }
+            
+            const current = weatherData.current;
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            // Check if we have sunrise/sunset data from daily forecast
+            if (weatherData.daily && weatherData.daily.length > 0) {
+                const today = weatherData.daily[0];
+                if (today.sunrise && today.sunset) {
+                    const sunrise = new Date(today.sunrise);
+                    const sunset = new Date(today.sunset);
+                    const sunriseHour = sunrise.getHours();
+                    const sunsetHour = sunset.getHours();
+                    
+                    // It's night if current hour is before sunrise or after sunset
+                    return currentHour < sunriseHour || currentHour >= sunsetHour;
+                }
+            }
+            
+            // Fallback: assume night between 6 PM and 6 AM
+            return currentHour >= 18 || currentHour < 6;
         }
         
 

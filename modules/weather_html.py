@@ -95,6 +95,7 @@ class WeatherHTMLMode:
         custom_icon_path = config.get('custom_icon_path', 'assets/icons/weather/')
         
         for weather_code, weather_icons in icon_mapping.items():
+            # Process day icons
             if 'custom' in weather_icons:
                 custom_filename = weather_icons['custom']
                 # Get the base64 data URL for this custom icon
@@ -105,6 +106,18 @@ class WeatherHTMLMode:
                     self.logger.debug(f"Pre-processed custom icon for weather code {weather_code}")
                 else:
                     self.logger.warning(f"Failed to load custom icon: {custom_filename}")
+            
+            # Process night icons
+            if 'custom_night' in weather_icons:
+                custom_night_filename = weather_icons['custom_night']
+                # Get the base64 data URL for this custom night icon
+                base64_night_icon = self._get_custom_icon_with_path(custom_night_filename, custom_icon_path, 'large')
+                if base64_night_icon:
+                    # Replace the filename with the base64 data URL
+                    weather_icons['custom_night'] = base64_night_icon
+                    self.logger.debug(f"Pre-processed custom night icon for weather code {weather_code}")
+                else:
+                    self.logger.warning(f"Failed to load custom night icon: {custom_night_filename}")
     
     def _preprocess_custom_metric_icons(self, config: Dict[str, Any]) -> None:
         """Pre-process custom metric icons and replace filenames with base64 data URLs."""
@@ -141,34 +154,34 @@ class WeatherHTMLMode:
             "icon_sources": ["emoji"],
             "custom_icon_path": "assets/icons/weather/",
             "icon_mapping": {
-                "0": {"emoji": "☀️", "description": "Clear sky"},
-                "1": {"emoji": "☀️", "description": "Mainly clear"},
-                "2": {"emoji": "⛅", "description": "Partly cloudy"},
-                "3": {"emoji": "☁️", "description": "Overcast"},
-                "45": {"emoji": "🌫️", "description": "Fog"},
-                "48": {"emoji": "🌫️", "description": "Depositing rime fog"},
-                "51": {"emoji": "🌦️", "description": "Light drizzle"},
-                "53": {"emoji": "🌦️", "description": "Moderate drizzle"},
-                "55": {"emoji": "🌦️", "description": "Dense drizzle"},
-                "56": {"emoji": "🌦️", "description": "Light freezing drizzle"},
-                "57": {"emoji": "🌦️", "description": "Dense freezing drizzle"},
-                "61": {"emoji": "🌧️", "description": "Slight rain"},
-                "63": {"emoji": "🌧️", "description": "Moderate rain"},
-                "65": {"emoji": "🌧️", "description": "Heavy rain"},
-                "66": {"emoji": "🌧️", "description": "Light freezing rain"},
-                "67": {"emoji": "🌧️", "description": "Heavy freezing rain"},
-                "71": {"emoji": "❄️", "description": "Slight snow fall"},
-                "73": {"emoji": "❄️", "description": "Moderate snow fall"},
-                "75": {"emoji": "❄️", "description": "Heavy snow fall"},
-                "77": {"emoji": "❄️", "description": "Snow grains"},
-                "80": {"emoji": "🌧️", "description": "Slight rain showers"},
-                "81": {"emoji": "🌧️", "description": "Moderate rain showers"},
-                "82": {"emoji": "🌧️", "description": "Violent rain showers"},
-                "85": {"emoji": "🌨️", "description": "Slight snow showers"},
-                "86": {"emoji": "🌨️", "description": "Heavy snow showers"},
-                "95": {"emoji": "⛈️", "description": "Thunderstorm"},
-                "96": {"emoji": "⛈️", "description": "Thunderstorm with slight hail"},
-                "99": {"emoji": "⛈️", "description": "Thunderstorm with heavy hail"}
+                "0": {"emoji": "☀️", "emoji_night": "🌙", "description": "Clear sky"},
+                "1": {"emoji": "☀️", "emoji_night": "🌙", "description": "Mainly clear"},
+                "2": {"emoji": "⛅", "emoji_night": "☁️", "description": "Partly cloudy"},
+                "3": {"emoji": "☁️", "emoji_night": "☁️", "description": "Overcast"},
+                "45": {"emoji": "🌫️", "emoji_night": "🌫️", "description": "Fog"},
+                "48": {"emoji": "🌫️", "emoji_night": "🌫️", "description": "Depositing rime fog"},
+                "51": {"emoji": "🌦️", "emoji_night": "🌦️", "description": "Light drizzle"},
+                "53": {"emoji": "🌦️", "emoji_night": "🌦️", "description": "Moderate drizzle"},
+                "55": {"emoji": "🌦️", "emoji_night": "🌦️", "description": "Dense drizzle"},
+                "56": {"emoji": "🌦️", "emoji_night": "🌦️", "description": "Light freezing drizzle"},
+                "57": {"emoji": "🌦️", "emoji_night": "🌦️", "description": "Dense freezing drizzle"},
+                "61": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Slight rain"},
+                "63": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Moderate rain"},
+                "65": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Heavy rain"},
+                "66": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Light freezing rain"},
+                "67": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Heavy freezing rain"},
+                "71": {"emoji": "❄️", "emoji_night": "❄️", "description": "Slight snow fall"},
+                "73": {"emoji": "❄️", "emoji_night": "❄️", "description": "Moderate snow fall"},
+                "75": {"emoji": "❄️", "emoji_night": "❄️", "description": "Heavy snow fall"},
+                "77": {"emoji": "❄️", "emoji_night": "❄️", "description": "Snow grains"},
+                "80": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Slight rain showers"},
+                "81": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Moderate rain showers"},
+                "82": {"emoji": "🌧️", "emoji_night": "🌧️", "description": "Violent rain showers"},
+                "85": {"emoji": "🌨️", "emoji_night": "🌨️", "description": "Slight snow showers"},
+                "86": {"emoji": "🌨️", "emoji_night": "🌨️", "description": "Heavy snow showers"},
+                "95": {"emoji": "⛈️", "emoji_night": "⛈️", "description": "Thunderstorm"},
+                "96": {"emoji": "⛈️", "emoji_night": "⛈️", "description": "Thunderstorm with slight hail"},
+                "99": {"emoji": "⛈️", "emoji_night": "⛈️", "description": "Thunderstorm with heavy hail"}
             }
         }
     
