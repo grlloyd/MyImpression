@@ -24,27 +24,27 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 6px;
-    gap: 4px;
+    padding: 6px 6px 12px 6px;
+    gap: 2px;
 }
 
-/* Header Section */
-.header-section {
+/* Location and Date Section */
+.location-date-section {
     text-align: center;
-    padding: 6px 0;
-    flex: 0 0 50px;
+    padding: 4px 0;
+    margin-bottom: 8px;
 }
 
 .location {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     margin: 0;
     color: #1a1a1a;
 }
 
 .date-display {
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 18px;
+    font-weight: 600;
     color: #000000;
     margin-top: 4px;
 }
@@ -53,14 +53,22 @@ body {
 .current-main {
     background: #ffffff;
     padding: 8px;
-    flex: 0 0 240px;
+    flex: 0 0 280px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 20px;
 }
 
 .current-left {
     flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.weather-temp-row {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -168,9 +176,9 @@ body {
 }
 
 .detail-label {
-    font-size: 11px;
+    font-size: 13px;
     color: #000000;
-    font-weight: 300;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     line-height: 1;
@@ -185,7 +193,7 @@ body {
 
 /* Hourly Section */
 .hourly-section {
-    flex: 0 0 70px;
+    flex: 0 0 85px;
     background: #ffffff;
     padding: 2px;
 }
@@ -210,8 +218,8 @@ body {
     justify-content: center;
     text-align: center;
     gap: 1px;
-    height: 40px;
-    max-width: 40px;
+    height: 55px;
+    max-width: 55px;
     overflow: hidden;
 }
 
@@ -222,15 +230,15 @@ body {
 }
 
 .hourly-icon {
-    font-size: 16px;
+    font-size: 28px;
     color: #000000;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
 }
 
 .hourly-icon .icon-symbol {
-    font-size: 16px;
+    font-size: 28px;
     line-height: 1;
 }
 
@@ -305,14 +313,14 @@ body {
 }
 
 .temp-high {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     color: rgb(255, 0, 0);
 }
 
 .temp-low {
-    font-size: 10px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 700;
     color: rgb(0, 0, 255);
     opacity: 0.8;
 }
@@ -325,8 +333,8 @@ body {
 /* Responsive adjustments for exact display size */
 @media (max-width: 800px) and (max-height: 480px) {
     .weather-container {
-        padding: 8px;
-        gap: 6px;
+        padding: 8px 8px 12px 8px;
+        gap: 2px;
     }
     
     .current-weather {
