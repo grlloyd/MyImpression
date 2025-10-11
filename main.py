@@ -289,8 +289,9 @@ class MyImpressionApp:
         if self.button_handler:
             self.button_handler.start()
         
-        # Start with photo cycle mode
-        self.switch_mode("photo_cycle")
+        # Start with button 1's configured mode
+        button_1_mode = self.config.get("buttons", {}).get("button_1", "photo_cycle")
+        self.switch_mode(button_1_mode)
         
         try:
             # Main loop

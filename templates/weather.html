@@ -252,7 +252,7 @@
             
             if (iconContent.startsWith('data:image/')) {
                 // Custom icon as base64 data URL
-                iconElement.innerHTML = `<img src="${iconContent}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+                iconElement.innerHTML = `<img src="${iconContent}" alt="Weather icon" style="width: 80px; height: 80px; object-fit: contain;">`;
             } else if (iconContent.startsWith('fas ')) {
                 // Font Awesome icon
                 iconElement.innerHTML = `<i class="${iconContent}"></i>`;
@@ -327,7 +327,7 @@
                 const forecastIcon = getWeatherIcon(day.weather_code, 'medium');
                 let iconHtml;
                 if (forecastIcon.startsWith('data:image/')) {
-                    iconHtml = `<img src="${forecastIcon}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    iconHtml = `<img src="${forecastIcon}" alt="Weather icon" style="width: 40px; height: 40px; object-fit: contain;">`;
                 } else if (forecastIcon.startsWith('fas ')) {
                     iconHtml = `<i class="${forecastIcon}"></i>`;
                 } else {
@@ -364,7 +364,7 @@
                 const hourlyIcon = getWeatherIcon(hour.weather_code, 'small');
                 let hourlyIconHtml;
                 if (hourlyIcon.startsWith('data:image/')) {
-                    hourlyIconHtml = `<img src="${hourlyIcon}" alt="Weather icon" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    hourlyIconHtml = `<img src="${hourlyIcon}" alt="Weather icon" style="width: 28px; height: 28px; object-fit: contain;">`;
                 } else if (hourlyIcon.startsWith('fas ')) {
                     hourlyIconHtml = `<i class="${hourlyIcon}"></i>`;
                 } else {
