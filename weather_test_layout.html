@@ -96,13 +96,46 @@ body {
     gap: 8px;
 }
 
-.weather-temp-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+.weather-temp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 8px;
     width: 100%;
     height: 100%;
+    padding: 8px;
+}
+
+.grid-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-a {
+    /* Weather icon - top left */
+}
+
+.grid-b {
+    /* Current temp - top center */
+}
+
+.grid-c {
+    /* Max/min - top right */
+    flex-direction: column;
+    gap: 2px;
+}
+
+.grid-d {
+    /* Empty - bottom left */
+}
+
+.grid-e {
+    /* Feels like - bottom center */
+}
+
+.grid-f {
+    /* Empty - bottom right */
 }
 
 .weather-icon-large {
@@ -111,8 +144,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 1;
-    height: 120px;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -138,7 +170,7 @@ body {
     flex-direction: column;
     justify-content: center;
     gap: 8px;
-    flex: 1;
+    height: 100%;
 }
 
 .weather-details-section {
@@ -180,21 +212,20 @@ body {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    flex: 1;
     height: 100%;
 }
 
 .daily-high {
     font-size: 18px;
     font-weight: 700;
-    color: #ff4444;
+    color: rgb(255, 0, 0);
     line-height: 1;
 }
 
 .daily-low {
     font-size: 18px;
     font-weight: 700;
-    color: #4444ff;
+    color: rgb(0, 0, 255);
     line-height: 1;
 }
 
@@ -447,21 +478,31 @@ body {
                     <div class="time-display">14:30</div>
                 </div>
                 
-                <div class="weather-temp-row">
-                    <div class="weather-icon-large" id="current-icon">
+                <div class="weather-temp-grid">
+                    <!-- Row 1 -->
+                    <div class="grid-item grid-a" id="current-icon">
                         <div class="icon-symbol">☁️</div>
                     </div>
-                    <div class="temperature-section">
+                    <div class="grid-item grid-b">
                         <div class="temperature-display">
                             <span class="temperature">18</span>
                             <span class="temperature-unit">°C</span>
                         </div>
-                        <div class="feels-like">Feels like 17°C</div>
                     </div>
-                    <div class="daily-high-low">
+                    <div class="grid-item grid-c" id="daily-high-low">
                         <span class="daily-high">🌡️<span style="font-weight: 700;">20°</span></span>
                         <span class="daily-low">🌡️<span style="font-weight: 700;">14°</span></span>
                         <span class="daily-max-precip">💧<span style="font-weight: 700;">35%</span></span>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="grid-item grid-d">
+                        <!-- Empty -->
+                    </div>
+                    <div class="grid-item grid-e">
+                        <div class="feels-like">Feels like 17°C</div>
+                    </div>
+                    <div class="grid-item grid-f">
+                        <!-- Empty -->
                     </div>
                 </div>
             </div>

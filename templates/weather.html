@@ -23,21 +23,31 @@
                     <div class="time-display" id="current-time">14:30</div>
                 </div>
                 
-                <div class="weather-temp-row">
-                    <div class="weather-icon-large" id="current-icon">
+                <div class="weather-temp-grid">
+                    <!-- Row 1 -->
+                    <div class="grid-item grid-a" id="current-icon">
                         <div class="icon-symbol">☁️</div>
                     </div>
-                    <div class="temperature-section">
+                    <div class="grid-item grid-b">
                         <div class="temperature-display">
                             <span class="temperature" id="current-temp">13</span>
                             <span class="temperature-unit">°C</span>
                         </div>
-                        <div class="feels-like" id="feels-like">Feels like 15°C</div>
                     </div>
-                    <div class="daily-high-low" id="daily-high-low">
+                    <div class="grid-item grid-c" id="daily-high-low">
                         <span class="daily-high">18°</span>
                         <span class="daily-low">12°</span>
                         <span class="daily-max-precip" id="daily-max-precip">💧25%</span>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="grid-item grid-d">
+                        <!-- Empty -->
+                    </div>
+                    <div class="grid-item grid-e">
+                        <div class="feels-like" id="feels-like">Feels like 15°C</div>
+                    </div>
+                    <div class="grid-item grid-f">
+                        <!-- Empty -->
                     </div>
                 </div>
             </div>
