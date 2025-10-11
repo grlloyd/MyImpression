@@ -8,20 +8,29 @@
   "icon_mapping": {
     "0": {
       "custom": "clear.png",
+      "custom_night": "clear-night.png",
       "fontawesome": "fas fa-sun",
+      "fontawesome_night": "fas fa-moon",
       "emoji": "☀️",
+      "emoji_night": "🌙",
       "description": "Clear sky"
     },
     "1": {
       "custom": "clear.png",
-      "fontawesome": "fas fa-sun", 
+      "custom_night": "clear-night.png",
+      "fontawesome": "fas fa-sun",
+      "fontawesome_night": "fas fa-moon", 
       "emoji": "☀️",
+      "emoji_night": "🌙",
       "description": "Mainly clear"
     },
     "2": {
       "custom": "partly_cloudy.png",
+      "custom_night": "partly_cloudy-night.png",
       "fontawesome": "fas fa-cloud-sun",
+      "fontawesome_night": "fas fa-cloud-moon",
       "emoji": "⛅",
+      "emoji_night": "☁️",
       "description": "Partly cloudy"
     },
     "3": {
@@ -128,32 +137,47 @@
     },
     "80": {
       "custom": "showers.png",
+      "custom_night": "showers-night.png",
       "fontawesome": "fas fa-cloud-showers-heavy",
+      "fontawesome_night": "fas fa-cloud-showers-heavy",
       "emoji": "🌧️",
+      "emoji_night": "🌧️",
       "description": "Slight rain showers"
     },
     "81": {
       "custom": "showers.png",
+      "custom_night": "showers-night.png",
       "fontawesome": "fas fa-cloud-showers-heavy",
+      "fontawesome_night": "fas fa-cloud-showers-heavy",
       "emoji": "🌧️",
+      "emoji_night": "🌧️",
       "description": "Moderate rain showers"
     },
     "82": {
       "custom": "showers.png",
+      "custom_night": "showers-night.png",
       "fontawesome": "fas fa-cloud-showers-heavy",
+      "fontawesome_night": "fas fa-cloud-showers-heavy",
       "emoji": "🌧️",
+      "emoji_night": "🌧️",
       "description": "Violent rain showers"
     },
     "85": {
       "custom": "snow_showers.png",
+      "custom_night": "snow_showers-night.png",
       "fontawesome": "fas fa-cloud-snow",
+      "fontawesome_night": "fas fa-cloud-snow",
       "emoji": "🌨️",
+      "emoji_night": "🌨️",
       "description": "Slight snow showers"
     },
     "86": {
       "custom": "snow_showers.png",
+      "custom_night": "snow_showers-night.png",
       "fontawesome": "fas fa-cloud-snow",
+      "fontawesome_night": "fas fa-cloud-snow",
       "emoji": "🌨️",
+      "emoji_night": "🌨️",
       "description": "Heavy snow showers"
     },
     "95": {
