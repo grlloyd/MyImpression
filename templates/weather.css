@@ -24,7 +24,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 4px 4px 6px 4px;
+    padding: 4px 4px 2px 4px;
     gap: 0px;
 }
 
@@ -32,7 +32,7 @@ body {
 .location-date-section {
     text-align: center;
     padding: 2px 0;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 .location {
@@ -60,7 +60,7 @@ body {
 }
 
 .current-left {
-    flex: 0 0 200px;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -74,6 +74,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    width: 150%;
+    max-width: 100%;
 }
 
 .weather-icon-large {
@@ -82,7 +84,7 @@ body {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    width: 120px;
+    flex: 1;
     height: 120px;
     overflow: hidden;
 }
@@ -90,6 +92,10 @@ body {
 .icon-symbol {
     font-size: 80px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .current-right {
@@ -105,7 +111,7 @@ body {
     flex-direction: column;
     justify-content: center;
     gap: 8px;
-    flex: 0 0 200px;
+    flex: 1;
 }
 
 .weather-details-section {
@@ -132,7 +138,6 @@ body {
 .temperature-unit {
     font-size: 32px;
     font-weight: 500;
-    opacity: 0.9;
     color: #000000;
 }
 
@@ -196,15 +201,15 @@ body {
 .hourly-section {
     flex: 0 0 100px;
     background: #ffffff;
-    padding: 1px;
+    padding: 1px 1px 0px 1px;
 }
 
 .hourly-scroll {
     display: flex;
     gap: 2px;
     overflow-x: auto;
-    padding: 1px 0;
-    height: 65px;
+    padding: 1px 0 0px 0;
+    height: 100%;
     align-items: center;
     justify-content: space-between;
 }
@@ -212,14 +217,14 @@ body {
 .hourly-item {
     flex: 1;
     background: #ffffff;
-    padding: 1px;
+    padding: 1px 1px 0px 1px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     gap: 1px;
-    height: 70px;
+    height: 100%;
     max-width: 65px;
     overflow: hidden;
 }
@@ -244,6 +249,10 @@ body {
 .hourly-icon .icon-symbol {
     font-size: 40px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .hourly-temp {
@@ -254,27 +263,29 @@ body {
 
 /* Forecast Section */
 .forecast-section {
-    flex: 0 0 120px;
+    flex: 0 0 100px;
     background: #ffffff;
-    padding: 1px;
+    padding: 0px 1px 0px 1px;
 }
 
 .forecast-grid {
     display: flex;
-    gap: 2px;
-    height: 110px;
+    gap: 1px;
+    height: 100%;
+    padding: 0px 0px 0px 0px;
 }
 
 .forecast-item {
     flex: 1;
     background: #ffffff;
-    padding: 2px;
+    padding: 2px 2px 0px 2px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     text-align: center;
-    gap: 1px;
+    gap: 2px;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -284,7 +295,7 @@ body {
     color: #000000;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    flex: 0 0 auto;
+    flex: 0 0 20px;
 }
 
 .forecast-bottom {
@@ -293,6 +304,9 @@ body {
     gap: 4px;
     flex: 1;
     justify-content: center;
+    min-height: 0;
+    width: 150%;
+    max-width: 100%;
 }
 
 .forecast-icon {
@@ -310,6 +324,10 @@ body {
 .forecast-icon .icon-symbol {
     font-size: 48px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .forecast-temps {
@@ -326,10 +344,9 @@ body {
 }
 
 .temp-low {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: rgb(0, 0, 255);
-    opacity: 0.8;
 }
 
 /* Color scheme optimized for e-ink display */

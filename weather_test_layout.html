@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Display - Layout Test</title>
+    <style>
+/* Weather Display CSS - Optimized for 800x480 e-ink display */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    color: #1a1a1a;
+    width: 800px;
+    height: 480px;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+}
+
+.weather-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 4px 2px 4px;
+    gap: 0px;
+}
+
+/* Location and Date Section */
+.location-date-section {
+    text-align: center;
+    padding: 2px 0;
+    margin-bottom: 8px;
+}
+
+.location {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+.date-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000000;
+    margin-top: 4px;
+}
+
+/* Current Weather Section */
+.current-main {
+    background: #ffffff;
+    padding: 8px;
+    flex: 0 0 260px;
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+}
+
+.current-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.weather-temp-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 150%;
+    max-width: 100%;
+}
+
+.weather-icon-large {
+    font-size: 80px;
+    color: #000000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 1;
+    height: 120px;
+    overflow: hidden;
+}
+
+.icon-symbol {
+    font-size: 80px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.current-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.temperature-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.weather-details-section {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.temperature-display {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.temperature {
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    color: #1a1a1a;
+}
+
+.temperature-unit {
+    font-size: 32px;
+    font-weight: 500;
+    color: #000000;
+}
+
+.feels-like {
+    font-size: 18px;
+    font-weight: 500;
+    color: #000000;
+}
+
+/* Weather Details Grid */
+.weather-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    height: 100%;
+    flex: 1;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    overflow: hidden;
+}
+
+.detail-icon {
+    font-size: 24px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #000000;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.detail-label {
+    font-size: 13px;
+    color: #000000;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    color: #1a1a1a;
+}
+
+/* Hourly Section */
+.hourly-section {
+    flex: 0 0 100px;
+    background: #ffffff;
+    padding: 1px 1px 0px 1px;
+}
+
+.hourly-scroll {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 1px 0 0px 0;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hourly-item {
+    flex: 1;
+    background: #ffffff;
+    padding: 1px 1px 0px 1px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1px;
+    height: 100%;
+    max-width: 65px;
+    overflow: hidden;
+}
+
+.hourly-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+}
+
+.hourly-icon {
+    font-size: 40px;
+    color: #000000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+}
+
+.hourly-icon .icon-symbol {
+    font-size: 40px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.hourly-temp {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Forecast Section */
+.forecast-section {
+    flex: 0 0 100px;
+    background: #ffffff;
+    padding: 0px 1px 0px 1px;
+}
+
+.forecast-grid {
+    display: flex;
+    gap: 1px;
+    height: 100%;
+    padding: 0px 0px 0px 0px;
+}
+
+.forecast-item {
+    flex: 1;
+    background: #ffffff;
+    padding: 2px 2px 0px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    gap: 2px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.forecast-day {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex: 0 0 20px;
+}
+
+.forecast-bottom {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+    min-height: 0;
+    width: 150%;
+    max-width: 100%;
+}
+
+.forecast-icon {
+    font-size: 48px;
+    color: #000000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+}
+
+.forecast-icon .icon-symbol {
+    font-size: 48px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.forecast-temps {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 0 0 auto;
+}
+
+.temp-high {
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(255, 0, 0);
+}
+
+.temp-low {
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(0, 0, 255);
+}
+
+/* Color scheme optimized for e-ink display */
+.weather-container {
+    background: #ffffff;
+}
+
+/* Debug borders to see spacing */
+.debug-border {
+    border: 1px solid red;
+}
+
+.debug-border-blue {
+    border: 1px solid blue;
+}
+
+.debug-border-green {
+    border: 1px solid green;
+}
+    </style>
+</head>
+<body>
+    <div class="weather-container">
+        <!-- Current Weather Section -->
+        <div class="current-main debug-border">
+            <div class="current-left">
+                <!-- Location and Date -->
+                <div class="location-date-section">
+                    <h1 class="location">London, UK</h1>
+                    <div class="date-display">Thursday, March 13</div>
+                </div>
+                
+                <div class="weather-temp-row">
+                    <div class="weather-icon-large">
+                        <div class="icon-symbol">☁️</div>
+                    </div>
+                    <div class="temperature-section">
+                        <div class="temperature-display">
+                            <span class="temperature">13</span>
+                            <span class="temperature-unit">°C</span>
+                        </div>
+                        <div class="feels-like">Feels like 15°C</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="current-right">
+                <div class="weather-details-section">
+                    <!-- Weather Details Grid -->
+                    <div class="weather-details-grid">
+                        <div class="detail-item">
+                            <div class="detail-icon">🌅</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Sunrise</div>
+                                <div class="detail-value">06:45</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">💨</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Wind</div>
+                                <div class="detail-value">8 km/h</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">📊</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Pressure</div>
+                                <div class="detail-value">1013 hPa</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">👁️</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Visibility</div>
+                                <div class="detail-value">10 km</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">🌇</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Sunset</div>
+                                <div class="detail-value">18:30</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">💧</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Humidity</div>
+                                <div class="detail-value">78%</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">☀️</div>
+                            <div class="detail-content">
+                                <div class="detail-label">UV Index</div>
+                                <div class="detail-value">3</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">🌬️</div>
+                            <div class="detail-content">
+                                <div class="detail-label">Air Quality</div>
+                                <div class="detail-value">Good</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hourly Forecast Section -->
+        <div class="hourly-section debug-border-blue">
+            <div class="hourly-scroll">
+                <div class="hourly-item">
+                    <div class="hourly-time">12:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">☀️</div>
+                    </div>
+                    <div class="hourly-temp">15°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">13:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">⛅</div>
+                    </div>
+                    <div class="hourly-temp">16°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">14:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">☁️</div>
+                    </div>
+                    <div class="hourly-temp">17°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">15:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌧️</div>
+                    </div>
+                    <div class="hourly-temp">16°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">16:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌦️</div>
+                    </div>
+                    <div class="hourly-temp">15°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">17:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">⛅</div>
+                    </div>
+                    <div class="hourly-temp">14°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">18:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌇</div>
+                    </div>
+                    <div class="hourly-temp">13°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">19:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌙</div>
+                    </div>
+                    <div class="hourly-temp">12°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">20:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌙</div>
+                    </div>
+                    <div class="hourly-temp">11°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">21:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌙</div>
+                    </div>
+                    <div class="hourly-temp">10°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">22:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌙</div>
+                    </div>
+                    <div class="hourly-temp">9°</div>
+                </div>
+                <div class="hourly-item">
+                    <div class="hourly-time">23:00</div>
+                    <div class="hourly-icon">
+                        <div class="icon-symbol">🌙</div>
+                    </div>
+                    <div class="hourly-temp">8°</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-Day Forecast Section -->
+        <div class="forecast-section debug-border-green">
+            <div class="forecast-grid">
+                <div class="forecast-item">
+                    <div class="forecast-day">Fri</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            <div class="icon-symbol">☀️</div>
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">18°</span>
+                            <span class="temp-low">12°</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-item">
+                    <div class="forecast-day">Sat</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            <div class="icon-symbol">⛅</div>
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">16°</span>
+                            <span class="temp-low">10°</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-item">
+                    <div class="forecast-day">Sun</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            <div class="icon-symbol">🌧️</div>
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">14°</span>
+                            <span class="temp-low">8°</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-item">
+                    <div class="forecast-day">Mon</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            <div class="icon-symbol">🌦️</div>
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">15°</span>
+                            <span class="temp-low">9°</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-item">
+                    <div class="forecast-day">Tue</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            <div class="icon-symbol">☁️</div>
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">17°</span>
+                            <span class="temp-low">11°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
