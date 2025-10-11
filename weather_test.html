@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Display</title>
+    <style>/* Weather Display CSS - Optimized for 800x480 e-ink display */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    color: #1a1a1a;
+    width: 800px;
+    height: 480px;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+}
+
+.weather-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 6px;
+}
+
+/* Current Weather Section */
+.current-weather {
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 6px;
+    padding: 12px;
+    color: #000000;
+    flex: 0 0 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.current-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.location {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.last-updated {
+    font-size: 11px;
+    opacity: 0.8;
+    font-weight: 300;
+}
+
+.current-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.weather-icon-large {
+    font-size: 42px;
+    color: #f59e0b;
+}
+
+.temperature-display {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.temperature {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.temperature-unit {
+    font-size: 22px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.conditions {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.current-details {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+}
+
+.detail-item i {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.detail-label {
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.detail-value {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Forecast Section */
+.forecast-section {
+    flex: 0 0 100px;
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.forecast-grid {
+    display: flex;
+    gap: 6px;
+    height: 80px;
+}
+
+.forecast-item {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.forecast-day {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.forecast-icon {
+    font-size: 18px;
+    color: #4299e1;
+    margin: 2px 0;
+}
+
+.forecast-temps {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.temp-high {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e53e3e;
+}
+
+.temp-low {
+    font-size: 11px;
+    font-weight: 500;
+    color: #3182ce;
+    opacity: 0.8;
+}
+
+/* Hourly Section */
+.hourly-section {
+    flex: 0 0 100px;
+    min-height: 0;
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.hourly-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px 0;
+    height: 70px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hourly-item {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2px;
+    height: 50px;
+    max-width: 50px;
+}
+
+.hourly-time {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.hourly-icon {
+    font-size: 16px;
+    color: #4299e1;
+}
+
+.hourly-temp {
+    font-size: 11px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Color scheme optimized for e-ink display */
+.weather-container {
+    /* Use high contrast colors that work well on e-ink */
+    background: #ffffff;
+}
+
+/* Temperature color coding */
+.temp-high {
+    color: #dc2626; /* Red for high temps */
+}
+
+.temp-low {
+    color: #2563eb; /* Blue for low temps */
+}
+
+/* Weather icon colors */
+.weather-icon-large .fa-sun,
+.weather-icon-large .fa-cloud-sun {
+    color: #f59e0b; /* Amber for sun */
+}
+
+.weather-icon-large .fa-cloud,
+.weather-icon-large .fa-cloud-rain,
+.weather-icon-large .fa-cloud-showers-heavy {
+    color: #6b7280; /* Gray for clouds */
+}
+
+.weather-icon-large .fa-snowflake,
+.weather-icon-large .fa-cloud-snow {
+    color: #3b82f6; /* Blue for snow */
+}
+
+.weather-icon-large .fa-bolt {
+    color: #fbbf24; /* Yellow for lightning */
+}
+
+.weather-icon-large .fa-smog {
+    color: #9ca3af; /* Light gray for fog */
+}
+
+/* Responsive adjustments for exact display size */
+@media (max-width: 800px) and (max-height: 480px) {
+    .weather-container {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .current-weather {
+        padding: 16px;
+        flex: 0 0 160px;
+    }
+    
+    .forecast-section {
+        flex: 0 0 100px;
+    }
+    
+    .temperature {
+        font-size: 42px;
+    }
+    
+    .weather-icon-large {
+        font-size: 40px;
+    }
+}
+
+/* Print/screenshot optimizations */
+@media print {
+    body {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .weather-container {
+        background: white !important;
+    }
+}
+
+/* Hide scrollbars for cleaner look */
+.hourly-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.hourly-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+</style>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    </style>
+    <style>
+    /* Emoji icon replacements for browser testing */
+    .fas.fa-sun:before { content: "☀️"; }
+    .fas.fa-cloud:before { content: "☁️"; }
+    .fas.fa-cloud-sun:before { content: "⛅"; }
+    .fas.fa-cloud-rain:before { content: "🌧️"; }
+    .fas.fa-cloud-showers-heavy:before { content: "🌧️"; }
+    .fas.fa-snowflake:before { content: "❄️"; }
+    .fas.fa-cloud-snow:before { content: "🌨️"; }
+    .fas.fa-bolt:before { content: "⚡"; }
+    .fas.fa-smog:before { content: "🌫️"; }
+    .fas.fa-cloud-drizzle:before { content: "🌦️"; }
+    .fas.fa-eye:before { content: "👁️"; }
+    .fas.fa-wind:before { content: "💨"; }
+    .fas.fa-tint:before { content: "💧"; }
+    .fas.fa-question:before { content: "❓"; }
+    </style>
+</head>
+<body>
+    <div class="weather-container">
+        <!-- Current Weather Section -->
+        <div class="current-weather">
+            <div class="current-header">
+                <h1 class="location">Current Weather</h1>
+                <div class="last-updated" id="last-updated"></div>
+            </div>
+            
+            <div class="current-main">
+                <div class="weather-icon-large" id="current-icon">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <div class="temperature-display">
+                    <span class="temperature" id="current-temp">13</span>
+                    <span class="temperature-unit">°C</span>
+                </div>
+                <div class="conditions" id="current-conditions">Overcast</div>
+            </div>
+            
+            <div class="current-details">
+                <div class="detail-item">
+                    <i class="fas fa-eye"></i>
+                    <span class="detail-label">Feels like</span>
+                    <span class="detail-value" id="feels-like">24°C</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-wind"></i>
+                    <span class="detail-label">Wind</span>
+                    <span class="detail-value" id="wind-speed">12 km/h</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-tint"></i>
+                    <span class="detail-label">Humidity</span>
+                    <span class="detail-value" id="humidity">65%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-Day Forecast Section -->
+        <div class="forecast-section">
+            <h2 class="section-title">5-Day Forecast</h2>
+            <div class="forecast-grid" id="forecast-grid">
+                <!-- Forecast items will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Hourly Forecast Section -->
+        <div class="hourly-section">
+            <h2 class="section-title">Next 12 Hours</h2>
+            <div class="hourly-scroll" id="hourly-scroll">
+                <!-- Hourly items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Weather data will be injected here by Python
+        const weatherData = {
+  "current": {
+    "temperature": 13,
+    "weather_code": 3,
+    "time": "2025-10-11T10:30"
+  },
+  "daily": [
+    {
+      "time": "2025-10-11",
+      "weather_code": 3,
+      "temp_max": 16,
+      "temp_min": 10
+    },
+    {
+      "time": "2025-10-12",
+      "weather_code": 3,
+      "temp_max": 16,
+      "temp_min": 9
+    },
+    {
+      "time": "2025-10-13",
+      "weather_code": 80,
+      "temp_max": 18,
+      "temp_min": 13
+    },
+    {
+      "time": "2025-10-14",
+      "weather_code": 3,
+      "temp_max": 18,
+      "temp_min": 13
+    },
+    {
+      "time": "2025-10-15",
+      "weather_code": 3,
+      "temp_max": 16,
+      "temp_min": 12
+    }
+  ],
+  "hourly": [
+    {
+      "time": "2025-10-11T10:00",
+      "weather_code": 3,
+      "temperature": 12
+    },
+    {
+      "time": "2025-10-11T11:00",
+      "weather_code": 3,
+      "temperature": 13
+    },
+    {
+      "time": "2025-10-11T12:00",
+      "weather_code": 3,
+      "temperature": 14
+    },
+    {
+      "time": "2025-10-11T13:00",
+      "weather_code": 3,
+      "temperature": 15
+    },
+    {
+      "time": "2025-10-11T14:00",
+      "weather_code": 3,
+      "temperature": 15
+    },
+    {
+      "time": "2025-10-11T15:00",
+      "weather_code": 3,
+      "temperature": 15
+    },
+    {
+      "time": "2025-10-11T16:00",
+      "weather_code": 3,
+      "temperature": 16
+    },
+    {
+      "time": "2025-10-11T17:00",
+      "weather_code": 3,
+      "temperature": 16
+    },
+    {
+      "time": "2025-10-11T18:00",
+      "weather_code": 2,
+      "temperature": 15
+    },
+    {
+      "time": "2025-10-11T19:00",
+      "weather_code": 1,
+      "temperature": 14
+    },
+    {
+      "time": "2025-10-11T20:00",
+      "weather_code": 1,
+      "temperature": 13
+    },
+    {
+      "time": "2025-10-11T21:00",
+      "weather_code": 2,
+      "temperature": 13
+    }
+  ],
+  "fetched_at": "2025-10-11T10:32:08.384710"
+};
+        
+        // Weather code to icon mapping
+        const weatherIcons = {
+            0: 'fas fa-sun',           // Clear sky
+            1: 'fas fa-sun',           // Mainly clear
+            2: 'fas fa-cloud-sun',     // Partly cloudy
+            3: 'fas fa-cloud',         // Overcast
+            45: 'fas fa-smog',         // Fog
+            48: 'fas fa-smog',         // Depositing rime fog
+            51: 'fas fa-cloud-drizzle', // Light drizzle
+            53: 'fas fa-cloud-drizzle', // Moderate drizzle
+            55: 'fas fa-cloud-drizzle', // Dense drizzle
+            56: 'fas fa-cloud-drizzle', // Light freezing drizzle
+            57: 'fas fa-cloud-drizzle', // Dense freezing drizzle
+            61: 'fas fa-cloud-rain',   // Slight rain
+            63: 'fas fa-cloud-rain',   // Moderate rain
+            65: 'fas fa-cloud-rain',   // Heavy rain
+            66: 'fas fa-cloud-rain',   // Light freezing rain
+            67: 'fas fa-cloud-rain',   // Heavy freezing rain
+            71: 'fas fa-snowflake',    // Slight snow fall
+            73: 'fas fa-snowflake',    // Moderate snow fall
+            75: 'fas fa-snowflake',    // Heavy snow fall
+            77: 'fas fa-snowflake',    // Snow grains
+            80: 'fas fa-cloud-showers-heavy', // Slight rain showers
+            81: 'fas fa-cloud-showers-heavy', // Moderate rain showers
+            82: 'fas fa-cloud-showers-heavy', // Violent rain showers
+            85: 'fas fa-cloud-snow',   // Slight snow showers
+            86: 'fas fa-cloud-snow',   // Heavy snow showers
+            95: 'fas fa-bolt',         // Thunderstorm
+            96: 'fas fa-bolt',         // Thunderstorm with slight hail
+            99: 'fas fa-bolt'          // Thunderstorm with heavy hail
+        };
+
+        // Weather code to description mapping
+        const weatherDescriptions = {
+            0: "Clear sky",
+            1: "Mainly clear",
+            2: "Partly cloudy",
+            3: "Overcast",
+            45: "Fog",
+            48: "Depositing rime fog",
+            51: "Light drizzle",
+            53: "Moderate drizzle",
+            55: "Dense drizzle",
+            56: "Light freezing drizzle",
+            57: "Dense freezing drizzle",
+            61: "Slight rain",
+            63: "Moderate rain",
+            65: "Heavy rain",
+            66: "Light freezing rain",
+            67: "Heavy freezing rain",
+            71: "Slight snow fall",
+            73: "Moderate snow fall",
+            75: "Heavy snow fall",
+            77: "Snow grains",
+            80: "Slight rain showers",
+            81: "Moderate rain showers",
+            82: "Violent rain showers",
+            85: "Slight snow showers",
+            86: "Heavy snow showers",
+            95: "Thunderstorm",
+            96: "Thunderstorm with slight hail",
+            99: "Thunderstorm with heavy hail"
+        };
+
+        function formatTime(timeStr) {
+            const date = new Date(timeStr);
+            return date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short' 
+            });
+        }
+
+        function getWeatherIcon(weatherCode) {
+            return weatherIcons[weatherCode] || 'fas fa-question';
+        }
+
+        function getWeatherDescription(weatherCode) {
+            return weatherDescriptions[weatherCode] || 'Unknown';
+        }
+
+        function updateCurrentWeather() {
+            if (!weatherData || !weatherData.current) return;
+
+            const current = weatherData.current;
+            
+            // Update current weather icon
+            const iconElement = document.getElementById('current-icon');
+            iconElement.innerHTML = `<i class="${getWeatherIcon(current.weather_code)}"></i>`;
+            
+            // Update temperature
+            document.getElementById('current-temp').textContent = current.temperature;
+            
+            // Update conditions
+            document.getElementById('current-conditions').textContent = getWeatherDescription(current.weather_code);
+            
+            // Update last updated time
+            const now = new Date();
+            document.getElementById('last-updated').textContent = `Updated ${now.toLocaleTimeString()}`;
+        }
+
+        function updateForecast() {
+            if (!weatherData || !weatherData.daily) return;
+
+            const forecastGrid = document.getElementById('forecast-grid');
+            forecastGrid.innerHTML = '';
+
+            weatherData.daily.slice(0, 5).forEach(day => {
+                const forecastItem = document.createElement('div');
+                forecastItem.className = 'forecast-item';
+                
+                forecastItem.innerHTML = `
+                    <div class="forecast-day">${formatDate(day.time)}</div>
+                    <div class="forecast-icon">
+                        <i class="${getWeatherIcon(day.weather_code)}"></i>
+                    </div>
+                    <div class="forecast-temps">
+                        <span class="temp-high">${day.temp_max}°</span>
+                        <span class="temp-low">${day.temp_min}°</span>
+                    </div>
+                `;
+                
+                forecastGrid.appendChild(forecastItem);
+            });
+        }
+
+        function updateHourly() {
+            if (!weatherData || !weatherData.hourly) return;
+
+            const hourlyScroll = document.getElementById('hourly-scroll');
+            hourlyScroll.innerHTML = '';
+
+            weatherData.hourly.slice(0, 12).forEach(hour => {
+                const hourlyItem = document.createElement('div');
+                hourlyItem.className = 'hourly-item';
+                
+                hourlyItem.innerHTML = `
+                    <div class="hourly-time">${formatTime(hour.time)}</div>
+                    <div class="hourly-icon">
+                        <i class="${getWeatherIcon(hour.weather_code)}"></i>
+                    </div>
+                    <div class="hourly-temp">${hour.temperature}°</div>
+                `;
+                
+                hourlyScroll.appendChild(hourlyItem);
+            });
+        }
+
+        // Initialize the display
+        function initializeWeather() {
+            updateCurrentWeather();
+            updateForecast();
+            updateHourly();
+        }
+
+        // Run when page loads
+        document.addEventListener('DOMContentLoaded', initializeWeather);
+    </script>
+</body>
+</html>

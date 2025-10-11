@@ -29,6 +29,7 @@ from modules.news_feed import NewsFeedMode
 from modules.tumblr_rss import TumblrRSSMode
 from modules.deviantart_rss import DeviantArtRSSMode
 from modules.weather import WeatherMode
+from modules.weather_html import WeatherHTMLMode
 from modules.display_utils import DisplayUtils
 
 
@@ -67,7 +68,8 @@ class MyImpressionApp:
             "tumblr_rss": TumblrRSSMode(self.inky, self.config, self.display_utils, self),
             "deviantart_rss": DeviantArtRSSMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self),
-            "weather": WeatherMode(self.inky, self.config, self.display_utils, self)
+            "weather": WeatherMode(self.inky, self.config, self.display_utils, self),
+            "weather_html": WeatherHTMLMode(self.inky, self.config, self.display_utils, self)
         }
         
         
@@ -117,7 +119,7 @@ class MyImpressionApp:
                 "button_1": "photo_cycle",
                 "button_2": "tumblr_rss", 
                 "button_3": "deviantart_rss",
-                "button_4": "weather"
+                "button_4": "weather_html"
             },
             "photo_cycle": {
                 "folder": "./data/photos",
@@ -231,7 +233,8 @@ class MyImpressionApp:
             "photo_cycle": 1,    # 1 flash
             "tumblr_rss": 2,     # 2 flashes
             "deviantart_rss": 3, # 3 flashes
-            "weather": 4         # 4 flashes
+            "weather": 4,        # 4 flashes
+            "weather_html": 5    # 5 flashes
         }
         
         flash_count = mode_patterns.get(mode_name, 1)
