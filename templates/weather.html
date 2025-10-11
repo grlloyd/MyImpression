@@ -15,7 +15,7 @@
             <div class="current-left">
                 <!-- Location and Date -->
                 <div class="location-date-section">
-                    <h1 class="location" id="location-name">London, UK</h1>
+                    <h1 class="location" id="location-name">Loading...</h1>
                     <div class="date-display" id="current-date">Thursday, March 13</div>
                 </div>
                 
@@ -411,7 +411,11 @@
         // Initialize the display
         function initializeWeather() {
             // Update location and date
-            document.getElementById('location-name').textContent = 'London, UK';
+            if (weatherData && weatherData.location) {
+                document.getElementById('location-name').textContent = weatherData.location.name;
+            } else {
+                document.getElementById('location-name').textContent = 'Unknown Location';
+            }
             const now = new Date();
             document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { 
                 weekday: 'long', 

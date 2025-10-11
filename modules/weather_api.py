@@ -157,7 +157,12 @@ class WeatherAPIClient:
         return {
             'current': current_weather,
             'daily': daily_forecast,
-            'hourly': hourly_forecast
+            'hourly': hourly_forecast,
+            'location': {
+                'name': self.get_location_name(),
+                'latitude': self.latitude,
+                'longitude': self.longitude
+            }
         }
     
     def _load_from_cache(self) -> Optional[Dict[str, Any]]:
@@ -244,10 +249,53 @@ class WeatherAPIClient:
             return "??"
     
     def get_location_name(self) -> str:
-        """Get location name from coordinates."""
-        # For now, return a default location name
-        # In a real implementation, you might want to use reverse geocoding
-        return "London, UK"
+        """Get location name from coordinates using reverse geocoding."""
+        try:
+            # Use Open-Meteo's free geocoding API
+            geocoding_url = "https://geocoding-api.open-meteo.com/v1/search"
+            params = {
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'count': 1,
+                'language': 'en',
+                'format': 'json'
+            }
+            
+            response = requests.get(geocoding_url, params=params, timeout=5)
+            response.raise_for_status()
+            
+            data = response.json()
+            results = data.get('results', [])
+            
+            if results:
+                location = results[0]
+                name = location.get('name', '')
+                country = location.get('country', '')
+                admin1 = location.get('admin1', '')  # State/Province
+                
+                # Format as "City, State, Country" or "City, Country"
+                if admin1 and admin1 != name:
+                    return f"{name}, {admin1}, {country}"
+                else:
+                    return f"{name}, {country}"
+            else:
+                # Fallback to coordinates if no city found
+                return self._format_coordinates()
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to get city name: {e}")
+            # Fallback to coordinates
+            return self._format_coordinates()
+    
+    def _format_coordinates(self) -> str:
+        """Format coordinates as a readable location string."""
+        lat_dir = "N" if self.latitude >= 0 else "S"
+        lon_dir = "E" if self.longitude >= 0 else "W"
+        
+        lat_abs = abs(self.latitude)
+        lon_abs = abs(self.longitude)
+        
+        return f"{lat_abs:.2f}°{lat_dir}, {lon_abs:.2f}°{lon_dir}"
     
     def format_date_display(self, date_str: str) -> str:
         """Format date string to 'Day, Month DD' format."""
