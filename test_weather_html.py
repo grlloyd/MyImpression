@@ -59,7 +59,7 @@ def main():
     
     print("Testing HTML Weather Mode...")
     print("This will attempt to generate a weather display using HTML rendering.")
-    print("If Playwright is not installed, it will fall back to basic rendering.")
+    print("Playwright browser automation is required for this mode to work.")
     
     try:
         # Force an update

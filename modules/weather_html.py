@@ -94,14 +94,15 @@ class WeatherHTMLMode:
         if not self.weather_data:
             return None
         
+        if not self.browser_available:
+            self.logger.error("Browser automation not available. Playwright installation required.")
+            return None
+        
         try:
-            if self.browser_available:
-                return self._render_with_browser()
-            else:
-                return self._render_fallback()
+            return self._render_with_browser()
         except Exception as e:
             self.logger.error(f"Error generating weather display: {e}")
-            return self._render_fallback()
+            return None
     
     def _render_with_browser(self) -> Optional[Image.Image]:
         """Render weather display using browser automation."""
@@ -112,15 +113,18 @@ class WeatherHTMLMode:
             html_content = self._generate_html_content()
             
             with sync_playwright() as p:
-                # Launch browser
+                # Launch browser using system Chromium
                 browser = p.chromium.launch(
                     headless=True,
+                    executable_path='/usr/bin/chromium-browser',
                     args=[
                         '--no-sandbox',
                         '--disable-dev-shm-usage',
                         '--disable-gpu',
                         '--disable-web-security',
-                        '--disable-features=VizDisplayCompositor'
+                        '--disable-features=VizDisplayCompositor',
+                        '--disable-extensions',
+                        '--disable-plugins'
                     ]
                 )
                 
@@ -160,55 +164,6 @@ class WeatherHTMLMode:
             self.logger.error(f"Browser rendering failed: {e}")
             return None
     
-    def _render_fallback(self) -> Optional[Image.Image]:
-        """Fallback rendering method without browser."""
-        self.logger.info("Using fallback rendering method")
-        
-        # Create a simple image using PIL as fallback
-        img = self.display_utils.create_image_with_palette()
-        
-        # This is a basic fallback - in a real implementation you might
-        # want to create a more sophisticated PIL-based layout
-        from PIL import ImageDraw, ImageFont
-        
-        draw = ImageDraw.Draw(img)
-        
-        # Draw basic weather info
-        current = self.weather_data['current']
-        
-        # Title
-        font_large = self.display_utils.get_font('large', 24)
-        self.display_utils.draw_text_centered(draw, "HTML Weather (Fallback)", 30, font_large, self.display_utils.BLACK)
-        
-        # Current temperature
-        temp_text = f"{current['temperature']}°C"
-        font_medium = self.display_utils.get_font('medium', 36)
-        self.display_utils.draw_text_centered(draw, temp_text, 100, font_medium, self.display_utils.BLUE)
-        
-        # Conditions
-        conditions = self.weather_api.get_weather_description(current['weather_code'])
-        font_small = self.display_utils.get_font('small', 16)
-        self.display_utils.draw_text_centered(draw, conditions, 150, font_small, self.display_utils.BLACK)
-        
-        # 5-day forecast
-        daily_forecast = self.weather_data['daily']
-        y_start = 200
-        for i, day in enumerate(daily_forecast[:5]):
-            x = 50 + (i * 140)
-            day_name = self.weather_api.get_day_name(day['time'])
-            
-            # Day name
-            self.display_utils.draw_text_centered(draw, day_name, y_start, font_small, self.display_utils.BLACK)
-            
-            # High temp
-            high_temp = f"{day['temp_max']}°"
-            self.display_utils.draw_text_centered(draw, high_temp, y_start + 30, font_small, self.display_utils.RED)
-            
-            # Low temp
-            low_temp = f"{day['temp_min']}°"
-            self.display_utils.draw_text_centered(draw, low_temp, y_start + 50, font_small, self.display_utils.BLUE)
-        
-        return img
     
     def _generate_html_content(self) -> str:
         """Generate HTML content with weather data."""
@@ -273,101 +228,5 @@ class WeatherHTMLMode:
             
         except Exception as e:
             self.logger.error(f"Error generating HTML content: {e}")
-            return self._generate_basic_html()
+            return None
     
-    def _generate_basic_html(self) -> str:
-        """Generate basic HTML as ultimate fallback."""
-        current = self.weather_data['current']
-        daily = self.weather_data['daily'][:5]
-        hourly = self.weather_data['hourly'][:12]
-        
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Weather</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 20px;
-                    background: white;
-                    color: black;
-                    width: 760px;
-                    height: 440px;
-                }}
-                .current {{
-                    text-align: center;
-                    margin-bottom: 20px;
-                }}
-                .temp {{
-                    font-size: 48px;
-                    font-weight: bold;
-                    color: #0066cc;
-                }}
-                .forecast {{
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                }}
-                .day {{
-                    text-align: center;
-                    padding: 10px;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                }}
-                .hourly {{
-                    display: flex;
-                    gap: 10px;
-                    overflow-x: auto;
-                }}
-                .hour {{
-                    text-align: center;
-                    padding: 5px;
-                    border: 1px solid #ddd;
-                    border-radius: 3px;
-                    min-width: 50px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="current">
-                <div class="temp">{current['temperature']}°C</div>
-                <div>{self.weather_api.get_weather_description(current['weather_code'])}</div>
-            </div>
-            
-            <div class="forecast">
-        """
-        
-        for day in daily:
-            day_name = self.weather_api.get_day_name(day['time'])
-            html += f"""
-                <div class="day">
-                    <div>{day_name}</div>
-                    <div>{day['temp_max']}°/{day['temp_min']}°</div>
-                </div>
-            """
-        
-        html += """
-            </div>
-            
-            <div class="hourly">
-        """
-        
-        for hour in hourly:
-            time_str = self.weather_api.format_hour(hour['time'])
-            html += f"""
-                <div class="hour">
-                    <div>{time_str}</div>
-                    <div>{hour['temperature']}°</div>
-                </div>
-            """
-        
-        html += """
-            </div>
-        </body>
-        </html>
-        """
-        
-        return html
