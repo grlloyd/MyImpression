@@ -24,8 +24,8 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 6px 6px 12px 6px;
-    gap: 2px;
+    padding: 4px 4px 8px 4px;
+    gap: 1px;
 }
 
 /* Location and Date Section */
@@ -53,7 +53,7 @@ body {
 .current-main {
     background: #ffffff;
     padding: 8px;
-    flex: 0 0 280px;
+    flex: 0 0 260px;
     display: flex;
     align-items: stretch;
     gap: 20px;
@@ -194,7 +194,7 @@ body {
 
 /* Hourly Section */
 .hourly-section {
-    flex: 0 0 110px;
+    flex: 0 0 100px;
     background: #ffffff;
     padding: 1px;
 }
@@ -204,7 +204,7 @@ body {
     gap: 2px;
     overflow-x: auto;
     padding: 1px 0;
-    height: 70px;
+    height: 65px;
     align-items: center;
     justify-content: space-between;
 }
@@ -219,7 +219,7 @@ body {
     justify-content: center;
     text-align: center;
     gap: 1px;
-    height: 75px;
+    height: 70px;
     max-width: 65px;
     overflow: hidden;
 }
@@ -353,7 +353,7 @@ body {
     }
     
     .hourly-section {
-        flex: 0 0 110px;
+        flex: 0 0 100px;
     }
     
     .temperature {
