@@ -63,6 +63,13 @@ body {
     margin-top: 4px;
 }
 
+.time-display {
+    font-size: 16px;
+    font-weight: 500;
+    color: #666666;
+    margin-top: 2px;
+}
+
 /* Current Weather Section */
 .current-main {
     background: #ffffff;
@@ -275,6 +282,12 @@ body {
     color: #000000;
 }
 
+.hourly-precip {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+}
+
 /* Forecast Section */
 .forecast-section {
     flex: 0 0 100px;
@@ -362,6 +375,12 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: rgb(0, 0, 255);
+}
+
+.forecast-precip {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
 }
 
 /* Color scheme optimized for e-ink display */

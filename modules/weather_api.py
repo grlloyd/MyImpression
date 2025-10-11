@@ -63,8 +63,8 @@ class WeatherAPIClient:
             'latitude': self.latitude,
             'longitude': self.longitude,
             'current': 'temperature_2m,weather_code,apparent_temperature,wind_speed_10m,relative_humidity_2m,surface_pressure,visibility,uv_index',
-            'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max',
-            'hourly': 'temperature_2m,weather_code',
+            'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max',
+            'hourly': 'temperature_2m,weather_code,precipitation_probability',
             'forecast_days': 5,
             'timezone': 'auto'
         }
@@ -114,6 +114,7 @@ class WeatherAPIClient:
         daily_sunrise = daily.get('sunrise', [])
         daily_sunset = daily.get('sunset', [])
         daily_uv = daily.get('uv_index_max', [])
+        daily_precip_prob = daily.get('precipitation_probability_max', [])
         
         for i in range(min(5, len(daily_times))):
             daily_forecast.append({
@@ -123,7 +124,8 @@ class WeatherAPIClient:
                 'temp_min': round(daily_min[i]) if i < len(daily_min) else 0,
                 'sunrise': daily_sunrise[i] if i < len(daily_sunrise) else '',
                 'sunset': daily_sunset[i] if i < len(daily_sunset) else '',
-                'uv_index': round(daily_uv[i]) if i < len(daily_uv) else 0
+                'uv_index': round(daily_uv[i]) if i < len(daily_uv) else 0,
+                'precipitation_probability': round(daily_precip_prob[i]) if i < len(daily_precip_prob) else 0
             })
         
         # Process hourly forecast (next 12 hours)
@@ -131,6 +133,7 @@ class WeatherAPIClient:
         hourly_times = hourly.get('time', [])
         hourly_codes = hourly.get('weather_code', [])
         hourly_temps = hourly.get('temperature_2m', [])
+        hourly_precip_prob = hourly.get('precipitation_probability', [])
         
         # Get current hour and next 11 hours
         now = datetime.now()
@@ -146,7 +149,8 @@ class WeatherAPIClient:
                     hourly_forecast.append({
                         'time': api_time,
                         'weather_code': hourly_codes[j] if j < len(hourly_codes) else 0,
-                        'temperature': round(hourly_temps[j]) if j < len(hourly_temps) else 0
+                        'temperature': round(hourly_temps[j]) if j < len(hourly_temps) else 0,
+                        'precipitation_probability': round(hourly_precip_prob[j]) if j < len(hourly_precip_prob) else 0
                     })
                     break
             else:
@@ -155,7 +159,8 @@ class WeatherAPIClient:
                     hourly_forecast.append({
                         'time': hourly_times[i],
                         'weather_code': hourly_codes[i] if i < len(hourly_codes) else 0,
-                        'temperature': round(hourly_temps[i]) if i < len(hourly_temps) else 0
+                        'temperature': round(hourly_temps[i]) if i < len(hourly_temps) else 0,
+                        'precipitation_probability': round(hourly_precip_prob[i]) if i < len(hourly_precip_prob) else 0
                     })
         
         return {

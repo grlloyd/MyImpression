@@ -70,6 +70,13 @@ body {
     margin-top: 4px;
 }
 
+.time-display {
+    font-size: 16px;
+    font-weight: 500;
+    color: #666666;
+    margin-top: 2px;
+}
+
 /* Current Weather Section */
 .current-main {
     background: #ffffff;
@@ -282,6 +289,12 @@ body {
     color: #000000;
 }
 
+.hourly-precip {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+}
+
 /* Forecast Section */
 .forecast-section {
     flex: 0 0 100px;
@@ -371,6 +384,12 @@ body {
     color: rgb(0, 0, 255);
 }
 
+.forecast-precip {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+}
+
 /* Debug borders for layout testing */
 .weather-container { border: 2px solid red; }
 .current-main { border: 2px solid blue; }
@@ -395,6 +414,7 @@ body {
                         <h2 class="location-country">United Kingdom</h2>
                     </div>
                     <div class="date-display">Thursday, October 11</div>
+                    <div class="time-display">14:30</div>
                 </div>
                 
                 <div class="weather-temp-row">
@@ -485,6 +505,7 @@ body {
                         <div class="icon-symbol">☁️</div>
                     </div>
                     <div class="hourly-temp">20°C</div>
+                    <div class="hourly-precip">💧10%</div>
                 </div>
                 <div class="hourly-item">
                     <div class="hourly-time">17:00</div>
@@ -492,6 +513,7 @@ body {
                         <div class="icon-symbol">⛅</div>
                     </div>
                     <div class="hourly-temp">19°C</div>
+                    <div class="hourly-precip">💧15%</div>
                 </div>
                 <div class="hourly-item">
                     <div class="hourly-time">18:00</div>
@@ -499,6 +521,7 @@ body {
                         <div class="icon-symbol">☁️</div>
                     </div>
                     <div class="hourly-temp">18°C</div>
+                    <div class="hourly-precip">💧25%</div>
                 </div>
                 <div class="hourly-item">
                     <div class="hourly-time">19:00</div>
@@ -578,6 +601,7 @@ body {
                         <div class="forecast-temps">
                             <div class="temp-high">20°</div>
                             <div class="temp-low">13°</div>
+                            <div class="forecast-precip">💧25%</div>
                         </div>
                     </div>
                 </div>

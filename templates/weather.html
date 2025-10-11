@@ -20,6 +20,7 @@
                         <h2 class="location-country" id="location-country"></h2>
                     </div>
                     <div class="date-display" id="current-date">Thursday, March 13</div>
+                    <div class="time-display" id="current-time">14:30</div>
                 </div>
                 
                 <div class="weather-temp-row">
@@ -426,6 +427,7 @@
                         <div class="forecast-temps">
                             <span class="temp-high">${day.temp_max}°</span>
                             <span class="temp-low">${day.temp_min}°</span>
+                            <span class="forecast-precip">💧${day.precipitation_probability || 0}%</span>
                         </div>
                     </div>
                 `;
@@ -461,6 +463,7 @@
                         ${hourlyIconHtml}
                     </div>
                     <div class="hourly-temp">${hour.temperature}°</div>
+                    <div class="hourly-precip">💧${hour.precipitation_probability || 0}%</div>
                 `;
                 
                 hourlyScroll.appendChild(hourlyItem);
@@ -524,6 +527,13 @@
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
+            });
+            
+            // Update time display
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
             });
             
             updateMetricIcons();
