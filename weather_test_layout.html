@@ -175,6 +175,34 @@ body {
     color: #000000;
 }
 
+.daily-high-low-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.daily-high {
+    font-size: 18px;
+    font-weight: 500;
+    color: #ff4444;
+    line-height: 1;
+}
+
+.daily-low {
+    font-size: 18px;
+    font-weight: 500;
+    color: #4444ff;
+    line-height: 1;
+}
+
+.daily-max-precip {
+    font-size: 18px;
+    font-weight: 500;
+    color: #000000;
+    line-height: 1;
+}
+
 /* Weather Details Grid */
 .weather-details-grid {
     display: grid;
@@ -428,6 +456,11 @@ body {
                         </div>
                         <div class="feels-like">Feels like 17°C</div>
                     </div>
+                </div>
+                <div class="daily-high-low-row">
+                    <span class="daily-high">🌡️20°</span>
+                    <span class="daily-low">🌡️14°</span>
+                    <span class="daily-max-precip">💧35%</span>
                 </div>
             </div>
             

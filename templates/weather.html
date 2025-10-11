@@ -35,6 +35,11 @@
                         <div class="feels-like" id="feels-like">Feels like 15°C</div>
                     </div>
                 </div>
+                <div class="daily-high-low-row" id="daily-high-low">
+                    <span class="daily-high">18°</span>
+                    <span class="daily-low">12°</span>
+                    <span class="daily-max-precip" id="daily-max-precip">💧25%</span>
+                </div>
             </div>
             
             <div class="current-right">
@@ -340,6 +345,60 @@
             return metricIcons[metricName]?.['emoji'] || '❓';
         }
 
+        function updateDailyHighLow() {
+            if (!weatherData || !weatherData.hourly) return;
+            
+            // Get today's date to filter hourly data
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+            
+            // Filter hourly data for today
+            const todayHours = weatherData.hourly.filter(hour => {
+                const hourDate = new Date(hour.time);
+                const hourDateStr = hourDate.toISOString().split('T')[0];
+                return hourDateStr === todayStr;
+            });
+            
+            if (todayHours.length === 0) return;
+            
+            // Find highest and lowest temperatures
+            const temperatures = todayHours.map(hour => hour.temperature);
+            const dailyHigh = Math.max(...temperatures);
+            const dailyLow = Math.min(...temperatures);
+            
+            // Find maximum precipitation probability over next 12 hours
+            const maxPrecip = Math.max(...weatherData.hourly.map(hour => hour.precipitation_probability || 0));
+            
+            // Get custom temperature icon
+            const tempIcon = getTemperatureIcon();
+            let tempIconHtml;
+            if (tempIcon.startsWith('data:image/')) {
+                tempIconHtml = `<img src="${tempIcon}" alt="Temperature" style="width: 18px; height: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 2px;">`;
+            } else if (tempIcon.startsWith('fas ')) {
+                tempIconHtml = `<i class="${tempIcon}" style="font-size: 18px; vertical-align: middle; margin-right: 2px;"></i>`;
+            } else {
+                tempIconHtml = tempIcon;
+            }
+            
+            // Get custom precipitation icon
+            const precipIcon = getPrecipitationIcon();
+            let precipIconHtml;
+            if (precipIcon.startsWith('data:image/')) {
+                precipIconHtml = `<img src="${precipIcon}" alt="Precipitation" style="width: 18px; height: 18px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 2px;">`;
+            } else if (precipIcon.startsWith('fas ')) {
+                precipIconHtml = `<i class="${precipIcon}" style="font-size: 18px; vertical-align: middle; margin-right: 2px;"></i>`;
+            } else {
+                precipIconHtml = precipIcon;
+            }
+            
+            // Update the display
+            document.getElementById('daily-high-low').innerHTML = `
+                <span class="daily-high">${tempIconHtml}${dailyHigh}°</span>
+                <span class="daily-low">${tempIconHtml}${dailyLow}°</span>
+                <span class="daily-max-precip">${precipIconHtml}${maxPrecip}%</span>
+            `;
+        }
+
         function updateCurrentWeather() {
             if (!weatherData || !weatherData.current) return;
 
@@ -367,6 +426,9 @@
             if (current.feels_like !== undefined) {
                 document.getElementById('feels-like').textContent = `Feels like ${current.feels_like}°C`;
             }
+            
+            // Update daily high/low from 12-hour forecast
+            updateDailyHighLow();
             
             // Update weather details
             if (current.wind_speed !== undefined) {
