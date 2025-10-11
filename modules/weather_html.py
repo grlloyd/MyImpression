@@ -213,7 +213,8 @@ class WeatherHTMLMode:
     def _get_custom_icon_with_path(self, icon_filename: str, custom_icon_path: str, size: str = "large") -> Optional[str]:
         """Get custom icon as base64 data URL with explicit path."""
         try:
-            icon_path = Path(custom_icon_path) / icon_filename
+            # Resolve the path to handle relative paths correctly
+            icon_path = Path(custom_icon_path).resolve() / icon_filename
             
             if not icon_path.exists():
                 self.logger.debug(f"Custom icon not found: {icon_path}")
