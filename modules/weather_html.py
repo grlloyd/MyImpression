@@ -498,29 +498,33 @@ class WeatherHTMLMode:
                 f'<style>{font_css}</style>'
             )
             
-            # Replace Font Awesome with a simpler icon solution
-            icon_css = """
-            /* Simple icon replacements for Font Awesome */
-            .fas.fa-sun:before { content: "☀️"; }
-            .fas.fa-cloud:before { content: "☁️"; }
-            .fas.fa-cloud-sun:before { content: "⛅"; }
-            .fas.fa-cloud-rain:before { content: "🌧️"; }
-            .fas.fa-cloud-showers-heavy:before { content: "🌧️"; }
-            .fas.fa-snowflake:before { content: "❄️"; }
-            .fas.fa-cloud-snow:before { content: "🌨️"; }
-            .fas.fa-bolt:before { content: "⚡"; }
-            .fas.fa-smog:before { content: "🌫️"; }
-            .fas.fa-cloud-drizzle:before { content: "🌦️"; }
-            .fas.fa-eye:before { content: "👁️"; }
-            .fas.fa-wind:before { content: "💨"; }
-            .fas.fa-tint:before { content: "💧"; }
-            .fas.fa-question:before { content: "❓"; }
-            """
-            
-            html_content = html_content.replace(
-                '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
-                f'<style>{icon_css}</style>'
-            )
+            # Only replace Font Awesome if not using Font Awesome icons
+            icon_sources = self.icon_config.get('icon_sources', ['emoji'])
+            if 'fontawesome' not in icon_sources or icon_sources[0] != 'fontawesome':
+                # Replace Font Awesome with emoji fallbacks when not using Font Awesome
+                icon_css = """
+                /* Simple icon replacements for Font Awesome */
+                .fas.fa-sun:before { content: "☀️"; }
+                .fas.fa-cloud:before { content: "☁️"; }
+                .fas.fa-cloud-sun:before { content: "⛅"; }
+                .fas.fa-cloud-rain:before { content: "🌧️"; }
+                .fas.fa-cloud-showers-heavy:before { content: "🌧️"; }
+                .fas.fa-snowflake:before { content: "❄️"; }
+                .fas.fa-cloud-snow:before { content: "🌨️"; }
+                .fas.fa-bolt:before { content: "⚡"; }
+                .fas.fa-smog:before { content: "🌫️"; }
+                .fas.fa-cloud-drizzle:before { content: "🌦️"; }
+                .fas.fa-eye:before { content: "👁️"; }
+                .fas.fa-wind:before { content: "💨"; }
+                .fas.fa-tint:before { content: "💧"; }
+                .fas.fa-question:before { content: "❓"; }
+                """
+                
+                html_content = html_content.replace(
+                    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
+                    f'<style>{icon_css}</style>'
+                )
+            # If using Font Awesome, keep the original link (browser will load it)
             
             return html_content
             

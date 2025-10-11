@@ -237,7 +237,20 @@
                 document.getElementById('pressure').textContent = `${current.pressure} hPa`;
             }
             if (current.visibility !== undefined) {
-                document.getElementById('visibility').textContent = `${current.visibility} km`;
+                // Convert meters to appropriate units
+                let visibility = current.visibility;
+                let unit = 'm';
+                
+                if (visibility >= 1000) {
+                    visibility = Math.round(visibility / 1000 * 10) / 10; // Round to 1 decimal
+                    // Remove unnecessary decimal for whole numbers
+                    if (visibility % 1 === 0) {
+                        visibility = Math.round(visibility);
+                    }
+                    unit = 'km';
+                }
+                
+                document.getElementById('visibility').textContent = `${visibility} ${unit}`;
             }
             if (current.uv_index !== undefined) {
                 document.getElementById('uv-index').textContent = current.uv_index;
