@@ -28,7 +28,6 @@ from modules.photo_cycle import PhotoCycleMode
 from modules.news_feed import NewsFeedMode
 from modules.tumblr_rss import TumblrRSSMode
 from modules.deviantart_rss import DeviantArtRSSMode
-from modules.weather import WeatherMode
 from modules.weather_html import WeatherHTMLMode
 from modules.display_utils import DisplayUtils
 
@@ -68,7 +67,6 @@ class MyImpressionApp:
             "tumblr_rss": TumblrRSSMode(self.inky, self.config, self.display_utils, self),
             "deviantart_rss": DeviantArtRSSMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self),
-            "weather": WeatherMode(self.inky, self.config, self.display_utils, self),
             "weather_html": WeatherHTMLMode(self.inky, self.config, self.display_utils, self)
         }
         
@@ -157,12 +155,11 @@ class MyImpressionApp:
                 "max_articles": 5,
                 "update_interval": 86400
             },
-            "weather": {
-                "latitude": 51.5074,
-                "longitude": -0.1278,
-                "display_time": 300,
+            "weather_html": {
+                "icon_source": "emoji",
+                "custom_icon_path": "assets/icons/weather/",
                 "update_interval": 1800,
-                "cache_duration": 3600
+                "saturation": 0.5
             }
         }
     
@@ -233,8 +230,7 @@ class MyImpressionApp:
             "photo_cycle": 1,    # 1 flash
             "tumblr_rss": 2,     # 2 flashes
             "deviantart_rss": 3, # 3 flashes
-            "weather": 4,        # 4 flashes
-            "weather_html": 5    # 5 flashes
+            "weather_html": 4    # 4 flashes
         }
         
         flash_count = mode_patterns.get(mode_name, 1)

@@ -1,0 +1,178 @@
+{
+  "icon_sources": [
+    "custom",
+    "fontawesome", 
+    "emoji"
+  ],
+  "custom_icon_path": "assets/icons/weather/",
+  "icon_mapping": {
+    "0": {
+      "custom": "clear.png",
+      "fontawesome": "fas fa-sun",
+      "emoji": "☀️",
+      "description": "Clear sky"
+    },
+    "1": {
+      "custom": "clear.png",
+      "fontawesome": "fas fa-sun", 
+      "emoji": "☀️",
+      "description": "Mainly clear"
+    },
+    "2": {
+      "custom": "partly_cloudy.png",
+      "fontawesome": "fas fa-cloud-sun",
+      "emoji": "⛅",
+      "description": "Partly cloudy"
+    },
+    "3": {
+      "custom": "overcast.png",
+      "fontawesome": "fas fa-cloud",
+      "emoji": "☁️",
+      "description": "Overcast"
+    },
+    "45": {
+      "custom": "fog.png",
+      "fontawesome": "fas fa-smog",
+      "emoji": "🌫️",
+      "description": "Fog"
+    },
+    "48": {
+      "custom": "fog.png",
+      "fontawesome": "fas fa-smog",
+      "emoji": "🌫️",
+      "description": "Depositing rime fog"
+    },
+    "51": {
+      "custom": "drizzle.png",
+      "fontawesome": "fas fa-cloud-drizzle",
+      "emoji": "🌦️",
+      "description": "Light drizzle"
+    },
+    "53": {
+      "custom": "drizzle.png",
+      "fontawesome": "fas fa-cloud-drizzle",
+      "emoji": "🌦️",
+      "description": "Moderate drizzle"
+    },
+    "55": {
+      "custom": "drizzle.png",
+      "fontawesome": "fas fa-cloud-drizzle",
+      "emoji": "🌦️",
+      "description": "Dense drizzle"
+    },
+    "56": {
+      "custom": "drizzle.png",
+      "fontawesome": "fas fa-cloud-drizzle",
+      "emoji": "🌦️",
+      "description": "Light freezing drizzle"
+    },
+    "57": {
+      "custom": "drizzle.png",
+      "fontawesome": "fas fa-cloud-drizzle",
+      "emoji": "🌦️",
+      "description": "Dense freezing drizzle"
+    },
+    "61": {
+      "custom": "rain.png",
+      "fontawesome": "fas fa-cloud-rain",
+      "emoji": "🌧️",
+      "description": "Slight rain"
+    },
+    "63": {
+      "custom": "rain.png",
+      "fontawesome": "fas fa-cloud-rain",
+      "emoji": "🌧️",
+      "description": "Moderate rain"
+    },
+    "65": {
+      "custom": "rain.png",
+      "fontawesome": "fas fa-cloud-rain",
+      "emoji": "🌧️",
+      "description": "Heavy rain"
+    },
+    "66": {
+      "custom": "rain.png",
+      "fontawesome": "fas fa-cloud-rain",
+      "emoji": "🌧️",
+      "description": "Light freezing rain"
+    },
+    "67": {
+      "custom": "rain.png",
+      "fontawesome": "fas fa-cloud-rain",
+      "emoji": "🌧️",
+      "description": "Heavy freezing rain"
+    },
+    "71": {
+      "custom": "snow.png",
+      "fontawesome": "fas fa-snowflake",
+      "emoji": "❄️",
+      "description": "Slight snow fall"
+    },
+    "73": {
+      "custom": "snow.png",
+      "fontawesome": "fas fa-snowflake",
+      "emoji": "❄️",
+      "description": "Moderate snow fall"
+    },
+    "75": {
+      "custom": "snow.png",
+      "fontawesome": "fas fa-snowflake",
+      "emoji": "❄️",
+      "description": "Heavy snow fall"
+    },
+    "77": {
+      "custom": "snow.png",
+      "fontawesome": "fas fa-snowflake",
+      "emoji": "❄️",
+      "description": "Snow grains"
+    },
+    "80": {
+      "custom": "showers.png",
+      "fontawesome": "fas fa-cloud-showers-heavy",
+      "emoji": "🌧️",
+      "description": "Slight rain showers"
+    },
+    "81": {
+      "custom": "showers.png",
+      "fontawesome": "fas fa-cloud-showers-heavy",
+      "emoji": "🌧️",
+      "description": "Moderate rain showers"
+    },
+    "82": {
+      "custom": "showers.png",
+      "fontawesome": "fas fa-cloud-showers-heavy",
+      "emoji": "🌧️",
+      "description": "Violent rain showers"
+    },
+    "85": {
+      "custom": "snow_showers.png",
+      "fontawesome": "fas fa-cloud-snow",
+      "emoji": "🌨️",
+      "description": "Slight snow showers"
+    },
+    "86": {
+      "custom": "snow_showers.png",
+      "fontawesome": "fas fa-cloud-snow",
+      "emoji": "🌨️",
+      "description": "Heavy snow showers"
+    },
+    "95": {
+      "custom": "thunderstorm.png",
+      "fontawesome": "fas fa-bolt",
+      "emoji": "⛈️",
+      "description": "Thunderstorm"
+    },
+    "96": {
+      "custom": "thunderstorm.png",
+      "fontawesome": "fas fa-bolt",
+      "emoji": "⛈️",
+      "description": "Thunderstorm with slight hail"
+    },
+    "99": {
+      "custom": "thunderstorm.png",
+      "fontawesome": "fas fa-bolt",
+      "emoji": "⛈️",
+      "description": "Thunderstorm with heavy hail"
+    }
+  }
+}

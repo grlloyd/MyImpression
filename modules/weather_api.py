@@ -62,8 +62,8 @@ class WeatherAPIClient:
         params = {
             'latitude': self.latitude,
             'longitude': self.longitude,
-            'current': 'temperature_2m,weather_code',
-            'daily': 'weather_code,temperature_2m_max,temperature_2m_min',
+            'current': 'temperature_2m,weather_code,apparent_temperature,wind_speed_10m,relative_humidity_2m,surface_pressure,visibility,uv_index',
+            'daily': 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max',
             'hourly': 'temperature_2m,weather_code',
             'forecast_days': 5,
             'timezone': 'auto'
@@ -92,7 +92,13 @@ class WeatherAPIClient:
         current_weather = {
             'temperature': round(current.get('temperature_2m', 0)),
             'weather_code': current.get('weather_code', 0),
-            'time': current.get('time', '')
+            'time': current.get('time', ''),
+            'feels_like': round(current.get('apparent_temperature', 0)),
+            'wind_speed': round(current.get('wind_speed_10m', 0)),
+            'humidity': round(current.get('relative_humidity_2m', 0)),
+            'pressure': round(current.get('surface_pressure', 0)),
+            'visibility': round(current.get('visibility', 0)),
+            'uv_index': round(current.get('uv_index', 0))
         }
         
         # Process daily forecast (5 days)
@@ -101,13 +107,19 @@ class WeatherAPIClient:
         daily_codes = daily.get('weather_code', [])
         daily_max = daily.get('temperature_2m_max', [])
         daily_min = daily.get('temperature_2m_min', [])
+        daily_sunrise = daily.get('sunrise', [])
+        daily_sunset = daily.get('sunset', [])
+        daily_uv = daily.get('uv_index_max', [])
         
         for i in range(min(5, len(daily_times))):
             daily_forecast.append({
                 'time': daily_times[i],
                 'weather_code': daily_codes[i] if i < len(daily_codes) else 0,
                 'temp_max': round(daily_max[i]) if i < len(daily_max) else 0,
-                'temp_min': round(daily_min[i]) if i < len(daily_min) else 0
+                'temp_min': round(daily_min[i]) if i < len(daily_min) else 0,
+                'sunrise': daily_sunrise[i] if i < len(daily_sunrise) else '',
+                'sunset': daily_sunset[i] if i < len(daily_sunset) else '',
+                'uv_index': round(daily_uv[i]) if i < len(daily_uv) else 0
             })
         
         # Process hourly forecast (next 12 hours)
@@ -230,3 +242,25 @@ class WeatherAPIClient:
             return time_obj.strftime('%H')  # 24-hour format
         except:
             return "??"
+    
+    def get_location_name(self) -> str:
+        """Get location name from coordinates."""
+        # For now, return a default location name
+        # In a real implementation, you might want to use reverse geocoding
+        return "London, UK"
+    
+    def format_date_display(self, date_str: str) -> str:
+        """Format date string to 'Day, Month DD' format."""
+        try:
+            date_obj = datetime.fromisoformat(date_str)
+            return date_obj.strftime('%A, %B %d')  # Thursday, March 13
+        except:
+            return "Unknown Date"
+    
+    def format_sunrise_sunset(self, time_str: str) -> str:
+        """Format sunrise/sunset time to HH:MM format."""
+        try:
+            time_obj = datetime.fromisoformat(time_str)
+            return time_obj.strftime('%H:%M')
+        except:
+            return "??:??"

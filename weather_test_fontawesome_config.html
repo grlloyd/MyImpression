@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Display - Font Awesome Icons</title>
+    <link rel="stylesheet" href="templates/weather.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="weather-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 class="location" id="location-name">London, UK</h1>
+            <div class="date-display" id="current-date">Thursday, March 13</div>
+        </div>
+
+        <!-- Current Weather Section -->
+        <div class="current-weather">
+            <div class="current-main">
+                <div class="current-left">
+                    <div class="weather-icon-large" id="current-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                </div>
+                
+                <div class="current-right">
+                    <div class="temperature-section">
+                        <div class="temperature-display">
+                            <span class="temperature" id="current-temp">13</span>
+                            <span class="temperature-unit">°C</span>
+                        </div>
+                        <div class="feels-like" id="feels-like">Feels like 15°C</div>
+                    </div>
+                    
+                    <div class="weather-details-section">
+                        <!-- Weather Details Grid -->
+                        <div class="weather-details-grid">
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-sunrise"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Sunrise</div>
+                                    <div class="detail-value" id="sunrise">06:45</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-wind"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Wind</div>
+                                    <div class="detail-value" id="wind-speed">8 km/h</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Pressure</div>
+                                    <div class="detail-value" id="pressure">1013 hPa</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-eye"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Visibility</div>
+                                    <div class="detail-value" id="visibility">10 km</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-sunset"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Sunset</div>
+                                    <div class="detail-value" id="sunset">18:30</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-tint"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Humidity</div>
+                                    <div class="detail-value" id="humidity">78%</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-sun"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">UV Index</div>
+                                    <div class="detail-value" id="uv-index">3</div>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="fas fa-leaf"></i></div>
+                                <div class="detail-content">
+                                    <div class="detail-label">Air Quality</div>
+                                    <div class="detail-value" id="air-quality">Good</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hourly Forecast Section -->
+        <div class="hourly-section">
+            <div class="hourly-scroll" id="hourly-scroll">
+                <!-- Hourly items will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- 5-Day Forecast Section -->
+        <div class="forecast-section">
+            <div class="forecast-grid" id="forecast-grid">
+                <!-- Forecast items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Weather data with additional details
+        const weatherData = {
+            "current": {
+                "temperature": 13,
+                "weather_code": 3,
+                "time": "2025-10-11T10:30",
+                "feels_like": 15,
+                "wind_speed": 8,
+                "humidity": 78,
+                "pressure": 1013,
+                "visibility": 10,
+                "uv_index": 3
+            },
+            "daily": [
+                {
+                    "time": "2025-10-11",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 10,
+                    "sunrise": "2025-10-11T06:45",
+                    "sunset": "2025-10-11T18:30",
+                    "uv_index": 3
+                },
+                {
+                    "time": "2025-10-12",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 9,
+                    "sunrise": "2025-10-12T06:47",
+                    "sunset": "2025-10-12T18:28",
+                    "uv_index": 2
+                },
+                {
+                    "time": "2025-10-13",
+                    "weather_code": 80,
+                    "temp_max": 18,
+                    "temp_min": 13,
+                    "sunrise": "2025-10-13T06:49",
+                    "sunset": "2025-10-13T18:26",
+                    "uv_index": 4
+                },
+                {
+                    "time": "2025-10-14",
+                    "weather_code": 3,
+                    "temp_max": 18,
+                    "temp_min": 13,
+                    "sunrise": "2025-10-14T06:51",
+                    "sunset": "2025-10-14T18:24",
+                    "uv_index": 3
+                },
+                {
+                    "time": "2025-10-15",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 12,
+                    "sunrise": "2025-10-15T06:53",
+                    "sunset": "2025-10-15T18:22",
+                    "uv_index": 2
+                }
+            ],
+            "hourly": [
+                {"time": "2025-10-11T11:00", "temperature": 13, "weather_code": 3},
+                {"time": "2025-10-11T12:00", "temperature": 14, "weather_code": 3},
+                {"time": "2025-10-11T13:00", "temperature": 15, "weather_code": 2},
+                {"time": "2025-10-11T14:00", "temperature": 16, "weather_code": 2},
+                {"time": "2025-10-11T15:00", "temperature": 16, "weather_code": 1},
+                {"time": "2025-10-11T16:00", "temperature": 15, "weather_code": 1},
+                {"time": "2025-10-11T17:00", "temperature": 14, "weather_code": 2},
+                {"time": "2025-10-11T18:00", "temperature": 13, "weather_code": 3},
+                {"time": "2025-10-11T19:00", "temperature": 12, "weather_code": 3},
+                {"time": "2025-10-11T20:00", "temperature": 11, "weather_code": 3},
+                {"time": "2025-10-11T21:00", "temperature": 10, "weather_code": 3},
+                {"time": "2025-10-11T22:00", "temperature": 9, "weather_code": 3}
+            ]
+        };
+        
+        // Font Awesome icon configuration
+        const iconConfig = {
+            "icon_sources": ["fontawesome", "emoji"],
+            "custom_icon_path": "assets/icons/weather/",
+            "icon_mapping": {
+                "0": {"fontawesome": "fas fa-sun", "emoji": "☀️", "description": "Clear sky"},
+                "1": {"fontawesome": "fas fa-sun", "emoji": "☀️", "description": "Mainly clear"},
+                "2": {"fontawesome": "fas fa-cloud-sun", "emoji": "⛅", "description": "Partly cloudy"},
+                "3": {"fontawesome": "fas fa-cloud", "emoji": "☁️", "description": "Overcast"},
+                "45": {"fontawesome": "fas fa-smog", "emoji": "🌫️", "description": "Fog"},
+                "48": {"fontawesome": "fas fa-smog", "emoji": "🌫️", "description": "Depositing rime fog"},
+                "51": {"fontawesome": "fas fa-cloud-drizzle", "emoji": "🌦️", "description": "Light drizzle"},
+                "53": {"fontawesome": "fas fa-cloud-drizzle", "emoji": "🌦️", "description": "Moderate drizzle"},
+                "55": {"fontawesome": "fas fa-cloud-drizzle", "emoji": "🌦️", "description": "Dense drizzle"},
+                "56": {"fontawesome": "fas fa-cloud-drizzle", "emoji": "🌦️", "description": "Light freezing drizzle"},
+                "57": {"fontawesome": "fas fa-cloud-drizzle", "emoji": "🌦️", "description": "Dense freezing drizzle"},
+                "61": {"fontawesome": "fas fa-cloud-rain", "emoji": "🌧️", "description": "Slight rain"},
+                "63": {"fontawesome": "fas fa-cloud-rain", "emoji": "🌧️", "description": "Moderate rain"},
+                "65": {"fontawesome": "fas fa-cloud-rain", "emoji": "🌧️", "description": "Heavy rain"},
+                "66": {"fontawesome": "fas fa-cloud-rain", "emoji": "🌧️", "description": "Light freezing rain"},
+                "67": {"fontawesome": "fas fa-cloud-rain", "emoji": "🌧️", "description": "Heavy freezing rain"},
+                "71": {"fontawesome": "fas fa-snowflake", "emoji": "❄️", "description": "Slight snow fall"},
+                "73": {"fontawesome": "fas fa-snowflake", "emoji": "❄️", "description": "Moderate snow fall"},
+                "75": {"fontawesome": "fas fa-snowflake", "emoji": "❄️", "description": "Heavy snow fall"},
+                "77": {"fontawesome": "fas fa-snowflake", "emoji": "❄️", "description": "Snow grains"},
+                "80": {"fontawesome": "fas fa-cloud-showers-heavy", "emoji": "🌧️", "description": "Slight rain showers"},
+                "81": {"fontawesome": "fas fa-cloud-showers-heavy", "emoji": "🌧️", "description": "Moderate rain showers"},
+                "82": {"fontawesome": "fas fa-cloud-showers-heavy", "emoji": "🌧️", "description": "Violent rain showers"},
+                "85": {"fontawesome": "fas fa-cloud-snow", "emoji": "🌨️", "description": "Slight snow showers"},
+                "86": {"fontawesome": "fas fa-cloud-snow", "emoji": "🌨️", "description": "Heavy snow showers"},
+                "95": {"fontawesome": "fas fa-bolt", "emoji": "⛈️", "description": "Thunderstorm"},
+                "96": {"fontawesome": "fas fa-bolt", "emoji": "⛈️", "description": "Thunderstorm with slight hail"},
+                "99": {"fontawesome": "fas fa-bolt", "emoji": "⛈️", "description": "Thunderstorm with heavy hail"}
+            }
+        };
+
+        // Icon system with fallback support
+        function getWeatherIcon(weatherCode, size = 'large') {
+            const weatherCodeStr = weatherCode.toString();
+            const iconMapping = iconConfig.icon_mapping || {};
+            
+            if (!iconMapping[weatherCodeStr]) {
+                return 'fas fa-question'; // Unknown weather
+            }
+            
+            const weatherIcons = iconMapping[weatherCodeStr];
+            const iconSources = iconConfig.icon_sources || ['emoji'];
+            
+            // Try each icon source in order
+            for (const source of iconSources) {
+                if (source === 'custom' && weatherIcons.custom) {
+                    return `custom:${weatherIcons.custom}`;
+                } else if (source === 'fontawesome' && weatherIcons.fontawesome) {
+                    return weatherIcons.fontawesome;
+                } else if (source === 'emoji' && weatherIcons.emoji) {
+                    return weatherIcons.emoji;
+                }
+            }
+            
+            return 'fas fa-question'; // Final fallback
+        }
+
+        function formatTime(timeStr) {
+            const date = new Date(timeStr);
+            return date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short' 
+            });
+        }
+
+        function getWeatherDescription(weatherCode) {
+            const descriptions = {
+                0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+                45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+                55: "Dense drizzle", 56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+                61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain", 66: "Light freezing rain",
+                67: "Heavy freezing rain", 71: "Slight snow fall", 73: "Moderate snow fall",
+                75: "Heavy snow fall", 77: "Snow grains", 80: "Slight rain showers",
+                81: "Moderate rain showers", 82: "Violent rain showers", 85: "Slight snow showers",
+                86: "Heavy snow showers", 95: "Thunderstorm", 96: "Thunderstorm with slight hail",
+                99: "Thunderstorm with heavy hail"
+            };
+            return descriptions[weatherCode] || 'Unknown';
+        }
+
+        function updateCurrentWeather() {
+            if (!weatherData || !weatherData.current) return;
+
+            const current = weatherData.current;
+            
+            // Update current weather icon
+            const iconElement = document.getElementById('current-icon');
+            const iconContent = getWeatherIcon(current.weather_code, 'large');
+            iconElement.innerHTML = `<i class="${iconContent}"></i>`;
+            
+            // Update temperature
+            document.getElementById('current-temp').textContent = current.temperature;
+            
+            // Update feels like
+            if (current.feels_like !== undefined) {
+                document.getElementById('feels-like').textContent = `Feels like ${current.feels_like}°C`;
+            }
+            
+            // Update weather details
+            if (current.wind_speed !== undefined) {
+                document.getElementById('wind-speed').textContent = `${current.wind_speed} km/h`;
+            }
+            if (current.humidity !== undefined) {
+                document.getElementById('humidity').textContent = `${current.humidity}%`;
+            }
+            if (current.pressure !== undefined) {
+                document.getElementById('pressure').textContent = `${current.pressure} hPa`;
+            }
+            if (current.visibility !== undefined) {
+                document.getElementById('visibility').textContent = `${current.visibility} km`;
+            }
+            if (current.uv_index !== undefined) {
+                document.getElementById('uv-index').textContent = current.uv_index;
+            }
+            
+            // Update sunrise/sunset from daily data
+            if (weatherData.daily && weatherData.daily.length > 0) {
+                const today = weatherData.daily[0];
+                if (today.sunrise) {
+                    document.getElementById('sunrise').textContent = formatTime(today.sunrise);
+                }
+                if (today.sunset) {
+                    document.getElementById('sunset').textContent = formatTime(today.sunset);
+                }
+            }
+            
+            // Air quality (placeholder)
+            document.getElementById('air-quality').textContent = 'Good';
+        }
+
+        function updateForecast() {
+            if (!weatherData || !weatherData.daily) return;
+
+            const forecastGrid = document.getElementById('forecast-grid');
+            forecastGrid.innerHTML = '';
+
+            weatherData.daily.slice(0, 5).forEach(day => {
+                const forecastItem = document.createElement('div');
+                forecastItem.className = 'forecast-item';
+                
+                const forecastIcon = getWeatherIcon(day.weather_code, 'medium');
+                let iconHtml = `<i class="${forecastIcon}"></i>`;
+                
+                forecastItem.innerHTML = `
+                    <div class="forecast-day">${formatDate(day.time)}</div>
+                    <div class="forecast-bottom">
+                        <div class="forecast-icon">
+                            ${iconHtml}
+                        </div>
+                        <div class="forecast-temps">
+                            <span class="temp-high">${day.temp_max}°</span>
+                            <span class="temp-low">${day.temp_min}°</span>
+                        </div>
+                    </div>
+                `;
+                
+                forecastGrid.appendChild(forecastItem);
+            });
+        }
+
+        function updateHourly() {
+            if (!weatherData || !weatherData.hourly) return;
+
+            const hourlyScroll = document.getElementById('hourly-scroll');
+            hourlyScroll.innerHTML = '';
+
+            weatherData.hourly.slice(0, 12).forEach(hour => {
+                const hourlyItem = document.createElement('div');
+                hourlyItem.className = 'hourly-item';
+                
+                const hourlyIcon = getWeatherIcon(hour.weather_code, 'small');
+                let hourlyIconHtml = `<i class="${hourlyIcon}"></i>`;
+                
+                hourlyItem.innerHTML = `
+                    <div class="hourly-time">${formatTime(hour.time)}</div>
+                    <div class="hourly-icon">
+                        ${hourlyIconHtml}
+                    </div>
+                    <div class="hourly-temp">${hour.temperature}°</div>
+                `;
+                
+                hourlyScroll.appendChild(hourlyItem);
+            });
+        }
+
+        // Initialize the display
+        function initializeWeather() {
+            // Update location and date
+            document.getElementById('location-name').textContent = 'London, UK';
+            const now = new Date();
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            updateCurrentWeather();
+            updateHourly();
+            updateForecast();
+        }
+
+        // Run when page loads
+        document.addEventListener('DOMContentLoaded', initializeWeather);
+    </script>
+</body>
+</html>

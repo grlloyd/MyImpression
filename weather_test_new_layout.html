@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Display</title>
-    <link rel="stylesheet" href="weather.css">
+    <title>Weather Display - New Layout</title>
+    <link rel="stylesheet" href="templates/weather.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -112,10 +112,118 @@
     </div>
 
     <script>
-        // Weather data and icon configuration will be injected here by Python
-        const weatherData = {{ weather_data | safe }};
-        const iconConfig = {{ icon_config | safe }};
+        // Weather data with additional details
+        const weatherData = {
+            "current": {
+                "temperature": 13,
+                "weather_code": 3,
+                "time": "2025-10-11T10:30",
+                "feels_like": 15,
+                "wind_speed": 8,
+                "humidity": 78,
+                "pressure": 1013,
+                "visibility": 10,
+                "uv_index": 3
+            },
+            "daily": [
+                {
+                    "time": "2025-10-11",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 10,
+                    "sunrise": "2025-10-11T06:45",
+                    "sunset": "2025-10-11T18:30",
+                    "uv_index": 3
+                },
+                {
+                    "time": "2025-10-12",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 9,
+                    "sunrise": "2025-10-12T06:47",
+                    "sunset": "2025-10-12T18:28",
+                    "uv_index": 2
+                },
+                {
+                    "time": "2025-10-13",
+                    "weather_code": 80,
+                    "temp_max": 18,
+                    "temp_min": 13,
+                    "sunrise": "2025-10-13T06:49",
+                    "sunset": "2025-10-13T18:26",
+                    "uv_index": 4
+                },
+                {
+                    "time": "2025-10-14",
+                    "weather_code": 3,
+                    "temp_max": 18,
+                    "temp_min": 13,
+                    "sunrise": "2025-10-14T06:51",
+                    "sunset": "2025-10-14T18:24",
+                    "uv_index": 3
+                },
+                {
+                    "time": "2025-10-15",
+                    "weather_code": 3,
+                    "temp_max": 16,
+                    "temp_min": 12,
+                    "sunrise": "2025-10-15T06:53",
+                    "sunset": "2025-10-15T18:22",
+                    "uv_index": 2
+                }
+            ],
+            "hourly": [
+                {"time": "2025-10-11T11:00", "temperature": 13, "weather_code": 3},
+                {"time": "2025-10-11T12:00", "temperature": 14, "weather_code": 3},
+                {"time": "2025-10-11T13:00", "temperature": 15, "weather_code": 2},
+                {"time": "2025-10-11T14:00", "temperature": 16, "weather_code": 2},
+                {"time": "2025-10-11T15:00", "temperature": 16, "weather_code": 1},
+                {"time": "2025-10-11T16:00", "temperature": 15, "weather_code": 1},
+                {"time": "2025-10-11T17:00", "temperature": 14, "weather_code": 2},
+                {"time": "2025-10-11T18:00", "temperature": 13, "weather_code": 3},
+                {"time": "2025-10-11T19:00", "temperature": 12, "weather_code": 3},
+                {"time": "2025-10-11T20:00", "temperature": 11, "weather_code": 3},
+                {"time": "2025-10-11T21:00", "temperature": 10, "weather_code": 3},
+                {"time": "2025-10-11T22:00", "temperature": 9, "weather_code": 3}
+            ]
+        };
         
+        // Emoji icon configuration
+        const iconConfig = {
+            "icon_sources": ["emoji"],
+            "custom_icon_path": "assets/icons/weather/",
+            "icon_mapping": {
+                "0": {"emoji": "☀️", "description": "Clear sky"},
+                "1": {"emoji": "☀️", "description": "Mainly clear"},
+                "2": {"emoji": "⛅", "description": "Partly cloudy"},
+                "3": {"emoji": "☁️", "description": "Overcast"},
+                "45": {"emoji": "🌫️", "description": "Fog"},
+                "48": {"emoji": "🌫️", "description": "Depositing rime fog"},
+                "51": {"emoji": "🌦️", "description": "Light drizzle"},
+                "53": {"emoji": "🌦️", "description": "Moderate drizzle"},
+                "55": {"emoji": "🌦️", "description": "Dense drizzle"},
+                "56": {"emoji": "🌦️", "description": "Light freezing drizzle"},
+                "57": {"emoji": "🌦️", "description": "Dense freezing drizzle"},
+                "61": {"emoji": "🌧️", "description": "Slight rain"},
+                "63": {"emoji": "🌧️", "description": "Moderate rain"},
+                "65": {"emoji": "🌧️", "description": "Heavy rain"},
+                "66": {"emoji": "🌧️", "description": "Light freezing rain"},
+                "67": {"emoji": "🌧️", "description": "Heavy freezing rain"},
+                "71": {"emoji": "❄️", "description": "Slight snow fall"},
+                "73": {"emoji": "❄️", "description": "Moderate snow fall"},
+                "75": {"emoji": "❄️", "description": "Heavy snow fall"},
+                "77": {"emoji": "❄️", "description": "Snow grains"},
+                "80": {"emoji": "🌧️", "description": "Slight rain showers"},
+                "81": {"emoji": "🌧️", "description": "Moderate rain showers"},
+                "82": {"emoji": "🌧️", "description": "Violent rain showers"},
+                "85": {"emoji": "🌨️", "description": "Slight snow showers"},
+                "86": {"emoji": "🌨️", "description": "Heavy snow showers"},
+                "95": {"emoji": "⛈️", "description": "Thunderstorm"},
+                "96": {"emoji": "⛈️", "description": "Thunderstorm with slight hail"},
+                "99": {"emoji": "⛈️", "description": "Thunderstorm with heavy hail"}
+            }
+        };
+
         // Icon system with fallback support
         function getWeatherIcon(weatherCode, size = 'large') {
             const weatherCodeStr = weatherCode.toString();
@@ -131,8 +239,6 @@
             // Try each icon source in order
             for (const source of iconSources) {
                 if (source === 'custom' && weatherIcons.custom) {
-                    // For custom icons, we'll use the filename as a placeholder
-                    // The actual icon loading will be handled by the server
                     return `custom:${weatherIcons.custom}`;
                 } else if (source === 'fontawesome' && weatherIcons.fontawesome) {
                     return weatherIcons.fontawesome;
@@ -143,44 +249,6 @@
             
             return '❓'; // Final fallback
         }
-        
-        // Legacy function for backward compatibility
-        const weatherIcons = {};
-        for (const [code, config] of Object.entries(iconConfig.icon_mapping || {})) {
-            weatherIcons[code] = config.emoji || '❓';
-        }
-
-        // Weather code to description mapping
-        const weatherDescriptions = {
-            0: "Clear sky",
-            1: "Mainly clear",
-            2: "Partly cloudy",
-            3: "Overcast",
-            45: "Fog",
-            48: "Depositing rime fog",
-            51: "Light drizzle",
-            53: "Moderate drizzle",
-            55: "Dense drizzle",
-            56: "Light freezing drizzle",
-            57: "Dense freezing drizzle",
-            61: "Slight rain",
-            63: "Moderate rain",
-            65: "Heavy rain",
-            66: "Light freezing rain",
-            67: "Heavy freezing rain",
-            71: "Slight snow fall",
-            73: "Moderate snow fall",
-            75: "Heavy snow fall",
-            77: "Snow grains",
-            80: "Slight rain showers",
-            81: "Moderate rain showers",
-            82: "Violent rain showers",
-            85: "Slight snow showers",
-            86: "Heavy snow showers",
-            95: "Thunderstorm",
-            96: "Thunderstorm with slight hail",
-            99: "Thunderstorm with heavy hail"
-        };
 
         function formatTime(timeStr) {
             const date = new Date(timeStr);
@@ -198,12 +266,19 @@
             });
         }
 
-        function getWeatherIcon(weatherCode) {
-            return weatherIcons[weatherCode] || 'fas fa-question';
-        }
-
         function getWeatherDescription(weatherCode) {
-            return weatherDescriptions[weatherCode] || 'Unknown';
+            const descriptions = {
+                0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+                45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+                55: "Dense drizzle", 56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+                61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain", 66: "Light freezing rain",
+                67: "Heavy freezing rain", 71: "Slight snow fall", 73: "Moderate snow fall",
+                75: "Heavy snow fall", 77: "Snow grains", 80: "Slight rain showers",
+                81: "Moderate rain showers", 82: "Violent rain showers", 85: "Slight snow showers",
+                86: "Heavy snow showers", 95: "Thunderstorm", 96: "Thunderstorm with slight hail",
+                99: "Thunderstorm with heavy hail"
+            };
+            return descriptions[weatherCode] || 'Unknown';
         }
 
         function updateCurrentWeather() {
@@ -214,18 +289,7 @@
             // Update current weather icon
             const iconElement = document.getElementById('current-icon');
             const iconContent = getWeatherIcon(current.weather_code, 'large');
-            
-            if (iconContent.startsWith('custom:')) {
-                // Handle custom icon - for now, fall back to emoji
-                const fallbackIcon = getWeatherIcon(current.weather_code, 'large');
-                iconElement.innerHTML = `<div class="icon-symbol">${fallbackIcon}</div>`;
-            } else if (iconContent.startsWith('fas ')) {
-                // Font Awesome icon
-                iconElement.innerHTML = `<i class="${iconContent}"></i>`;
-            } else {
-                // Emoji or other text
-                iconElement.innerHTML = `<div class="icon-symbol">${iconContent}</div>`;
-            }
+            iconElement.innerHTML = `<div class="icon-symbol">${iconContent}</div>`;
             
             // Update temperature
             document.getElementById('current-temp').textContent = current.temperature;
@@ -263,7 +327,7 @@
                 }
             }
             
-            // Air quality (placeholder - not available in Open-Meteo free API)
+            // Air quality (placeholder)
             document.getElementById('air-quality').textContent = 'Good';
         }
 
@@ -278,12 +342,7 @@
                 forecastItem.className = 'forecast-item';
                 
                 const forecastIcon = getWeatherIcon(day.weather_code, 'medium');
-                let iconHtml;
-                if (forecastIcon.startsWith('fas ')) {
-                    iconHtml = `<i class="${forecastIcon}"></i>`;
-                } else {
-                    iconHtml = `<div class="icon-symbol">${forecastIcon}</div>`;
-                }
+                let iconHtml = `<div class="icon-symbol">${forecastIcon}</div>`;
                 
                 forecastItem.innerHTML = `
                     <div class="forecast-day">${formatDate(day.time)}</div>
@@ -313,12 +372,7 @@
                 hourlyItem.className = 'hourly-item';
                 
                 const hourlyIcon = getWeatherIcon(hour.weather_code, 'small');
-                let hourlyIconHtml;
-                if (hourlyIcon.startsWith('fas ')) {
-                    hourlyIconHtml = `<i class="${hourlyIcon}"></i>`;
-                } else {
-                    hourlyIconHtml = `<div class="icon-symbol">${hourlyIcon}</div>`;
-                }
+                let hourlyIconHtml = `<div class="icon-symbol">${hourlyIcon}</div>`;
                 
                 hourlyItem.innerHTML = `
                     <div class="hourly-time">${formatTime(hour.time)}</div>
