@@ -32,7 +32,7 @@ body {
 .location-date-section {
     text-align: center;
     padding: 2px 0;
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 
 .location-display {
@@ -74,7 +74,7 @@ body {
 .current-main {
     background: #ffffff;
     padding: 8px;
-    flex: 0 0 260px;
+    flex: 0 0 240px;
     display: flex;
     align-items: stretch;
     gap: 20px;
@@ -93,10 +93,9 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 150%;
-    max-width: 100%;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
 }
 
 .weather-icon-large {
@@ -168,11 +167,14 @@ body {
     color: #000000;
 }
 
-.daily-high-low-row {
+.daily-high-low {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 20px;
-    margin-top: 8px;
+    gap: 2px;
+    flex: 1;
+    height: 100%;
 }
 
 .daily-high {
