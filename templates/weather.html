@@ -364,7 +364,7 @@
                 const hourlyIcon = getWeatherIcon(hour.weather_code, 'small');
                 let hourlyIconHtml;
                 if (hourlyIcon.startsWith('data:image/')) {
-                    hourlyIconHtml = `<img src="${hourlyIcon}" alt="Weather icon" style="width: 28px; height: 28px; object-fit: contain;">`;
+                    hourlyIconHtml = `<img src="${hourlyIcon}" alt="Weather icon" style="width: 40px; height: 40px; object-fit: contain;">`;
                 } else if (hourlyIcon.startsWith('fas ')) {
                     hourlyIconHtml = `<i class="${hourlyIcon}"></i>`;
                 } else {
