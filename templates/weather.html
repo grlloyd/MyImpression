@@ -36,56 +36,56 @@
                     <!-- Weather Details Grid -->
                     <div class="weather-details-grid">
                         <div class="detail-item">
-                            <div class="detail-icon">🌅</div>
+                            <div class="detail-icon" id="sunrise-icon">🌅</div>
                             <div class="detail-content">
                                 <div class="detail-label">Sunrise</div>
                                 <div class="detail-value" id="sunrise">06:45</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">💨</div>
+                            <div class="detail-icon" id="wind-icon">💨</div>
                             <div class="detail-content">
                                 <div class="detail-label">Wind</div>
                                 <div class="detail-value" id="wind-speed">8 km/h</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">📊</div>
+                            <div class="detail-icon" id="pressure-icon">📊</div>
                             <div class="detail-content">
                                 <div class="detail-label">Pressure</div>
                                 <div class="detail-value" id="pressure">1013 hPa</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">👁️</div>
+                            <div class="detail-icon" id="visibility-icon">👁️</div>
                             <div class="detail-content">
                                 <div class="detail-label">Visibility</div>
                                 <div class="detail-value" id="visibility">10 km</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">🌇</div>
+                            <div class="detail-icon" id="sunset-icon">🌇</div>
                             <div class="detail-content">
                                 <div class="detail-label">Sunset</div>
                                 <div class="detail-value" id="sunset">18:30</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">💧</div>
+                            <div class="detail-icon" id="humidity-icon">💧</div>
                             <div class="detail-content">
                                 <div class="detail-label">Humidity</div>
                                 <div class="detail-value" id="humidity">78%</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">☀️</div>
+                            <div class="detail-icon" id="uv-index-icon">☀️</div>
                             <div class="detail-content">
                                 <div class="detail-label">UV Index</div>
                                 <div class="detail-value" id="uv-index">3</div>
                             </div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-icon">🌬️</div>
+                            <div class="detail-icon" id="air-quality-icon">🌬️</div>
                             <div class="detail-content">
                                 <div class="detail-label">Air Quality</div>
                                 <div class="detail-value" id="air-quality">Good</div>
@@ -195,6 +195,49 @@
 
         function getWeatherDescription(weatherCode) {
             return weatherDescriptions[weatherCode] || 'Unknown';
+        }
+
+        function getMetricIcon(metricName) {
+            const iconSources = iconConfig.icon_sources || ['emoji'];
+            const source = iconSources[0]; // Use the primary icon source
+            
+            const metricIcons = {
+                'sunrise': {
+                    'fontawesome': 'fas fa-sun',
+                    'emoji': '🌅'
+                },
+                'wind': {
+                    'fontawesome': 'fas fa-wind',
+                    'emoji': '💨'
+                },
+                'pressure': {
+                    'fontawesome': 'fas fa-tachometer-alt',
+                    'emoji': '📊'
+                },
+                'visibility': {
+                    'fontawesome': 'fas fa-eye',
+                    'emoji': '👁️'
+                },
+                'sunset': {
+                    'fontawesome': 'fas fa-sun',
+                    'emoji': '🌇'
+                },
+                'humidity': {
+                    'fontawesome': 'fas fa-tint',
+                    'emoji': '💧'
+                },
+                'uv_index': {
+                    'fontawesome': 'fas fa-sun',
+                    'emoji': '☀️'
+                },
+                'air_quality': {
+                    'fontawesome': 'fas fa-wind',
+                    'emoji': '🌬️'
+                }
+            };
+            
+            const icon = metricIcons[metricName]?.[source] || metricIcons[metricName]?.['emoji'] || '❓';
+            return icon;
         }
 
         function updateCurrentWeather() {
@@ -336,6 +379,31 @@
             });
         }
 
+        function updateMetricIcons() {
+            // Update all metric icons based on icon source
+            const metrics = [
+                'sunrise', 'wind', 'pressure', 'visibility', 
+                'sunset', 'humidity', 'uv-index', 'air-quality'
+            ];
+            
+            metrics.forEach(metric => {
+                const iconElement = document.getElementById(`${metric}-icon`);
+                if (iconElement) {
+                    // Convert hyphenated names to underscore for getMetricIcon
+                    const metricName = metric.replace('-', '_');
+                    const icon = getMetricIcon(metricName);
+                    
+                    if (icon.startsWith('fas ')) {
+                        // Font Awesome icon
+                        iconElement.innerHTML = `<i class="${icon}"></i>`;
+                    } else {
+                        // Emoji or other text
+                        iconElement.innerHTML = icon;
+                    }
+                }
+            });
+        }
+
         // Initialize the display
         function initializeWeather() {
             // Update location and date
@@ -348,6 +416,7 @@
                 day: 'numeric' 
             });
             
+            updateMetricIcons();
             updateCurrentWeather();
             updateHourly();
             updateForecast();
