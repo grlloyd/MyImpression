@@ -96,37 +96,53 @@ class WeatherHTMLMode:
         
         if not self.browser_available:
             self.logger.error("Browser automation not available. Playwright installation required.")
-            return None
+            return self._generate_fallback_display()
         
         try:
             return self._render_with_browser()
         except Exception as e:
             self.logger.error(f"Error generating weather display: {e}")
-            return None
+            self.logger.info("Falling back to simple text display")
+            return self._generate_fallback_display()
     
     def _render_with_browser(self) -> Optional[Image.Image]:
         """Render weather display using browser automation."""
         try:
             from playwright.sync_api import sync_playwright
+            import shutil
             
             # Generate HTML content
             html_content = self._generate_html_content()
             
             with sync_playwright() as p:
-                # Launch browser using system Chromium
-                browser = p.chromium.launch(
-                    headless=True,
-                    executable_path='/usr/bin/chromium-browser',
-                    args=[
+                # Find available browser executable
+                browser_executable = self._find_browser_executable()
+                
+                # Launch browser with appropriate settings
+                launch_options = {
+                    'headless': True,
+                    'args': [
                         '--no-sandbox',
                         '--disable-dev-shm-usage',
                         '--disable-gpu',
                         '--disable-web-security',
                         '--disable-features=VizDisplayCompositor',
                         '--disable-extensions',
-                        '--disable-plugins'
+                        '--disable-plugins',
+                        '--disable-background-timer-throttling',
+                        '--disable-backgrounding-occluded-windows',
+                        '--disable-renderer-backgrounding'
                     ]
-                )
+                }
+                
+                # Add executable path if found
+                if browser_executable:
+                    launch_options['executable_path'] = browser_executable
+                    self.logger.info(f"Using browser executable: {browser_executable}")
+                else:
+                    self.logger.info("Using default browser executable")
+                
+                browser = p.chromium.launch(**launch_options)
                 
                 # Create page with exact display dimensions
                 page = browser.new_page(viewport={
@@ -164,6 +180,132 @@ class WeatherHTMLMode:
             self.logger.error(f"Browser rendering failed: {e}")
             return None
     
+    def _find_browser_executable(self) -> Optional[str]:
+        """Find the best available browser executable for the system."""
+        import shutil
+        import os
+        
+        # Common browser executable paths on Raspberry Pi/Linux systems
+        # Prioritize chromium-headless-shell for better performance in headless mode
+        browser_paths = [
+            '/usr/bin/chromium-headless-shell',  # Best for headless automation
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/usr/bin/google-chrome',
+            '/usr/bin/google-chrome-stable',
+            '/snap/bin/chromium',
+            '/usr/local/bin/chromium-browser',
+            '/opt/google/chrome/chrome'
+        ]
+        
+        # Check which browser is available
+        for path in browser_paths:
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                self.logger.info(f"Found browser executable: {path}")
+                return path
+        
+        # Try to find chromium in PATH (prioritize headless-shell)
+        chromium_path = shutil.which('chromium-headless-shell')
+        if chromium_path:
+            self.logger.info(f"Found chromium-headless-shell in PATH: {chromium_path}")
+            return chromium_path
+            
+        chromium_path = shutil.which('chromium-browser')
+        if chromium_path:
+            self.logger.info(f"Found chromium-browser in PATH: {chromium_path}")
+            return chromium_path
+            
+        chromium_path = shutil.which('chromium')
+        if chromium_path:
+            self.logger.info(f"Found chromium in PATH: {chromium_path}")
+            return chromium_path
+            
+        # Try to find chrome in PATH
+        chrome_path = shutil.which('google-chrome')
+        if chrome_path:
+            self.logger.info(f"Found google-chrome in PATH: {chrome_path}")
+            return chrome_path
+        
+        self.logger.warning("No browser executable found, will use default")
+        return None
+    
+    def _generate_fallback_display(self) -> Optional[Image.Image]:
+        """Generate a simple fallback weather display without browser rendering."""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            
+            # Create a new image with the display dimensions
+            img = Image.new('RGB', (self.inky.width, self.inky.height), 'white')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use a system font, fallback to default
+            try:
+                font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+                font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+                font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+            except:
+                try:
+                    font_large = ImageFont.load_default()
+                    font_medium = ImageFont.load_default()
+                    font_small = ImageFont.load_default()
+                except:
+                    font_large = font_medium = font_small = None
+            
+            # Get weather data
+            current = self.weather_data.get('current', {})
+            location = self.weather_data.get('location', {})
+            
+            # Draw weather information
+            y_pos = 10
+            
+            # Location
+            if location.get('name'):
+                location_text = f"{location['name']}, {location.get('region', '')}"
+                if font_medium:
+                    draw.text((10, y_pos), location_text, fill='black', font=font_medium)
+                else:
+                    draw.text((10, y_pos), location_text, fill='black')
+                y_pos += 25
+            
+            # Temperature
+            if current.get('temp_c'):
+                temp_text = f"{current['temp_c']:.1f}°C"
+                if font_large:
+                    draw.text((10, y_pos), temp_text, fill='black', font=font_large)
+                else:
+                    draw.text((10, y_pos), temp_text, fill='black')
+                y_pos += 35
+            
+            # Weather condition
+            if current.get('condition', {}).get('text'):
+                condition_text = current['condition']['text']
+                if font_medium:
+                    draw.text((10, y_pos), condition_text, fill='black', font=font_medium)
+                else:
+                    draw.text((10, y_pos), condition_text, fill='black')
+                y_pos += 25
+            
+            # Additional details
+            details = []
+            if current.get('humidity'):
+                details.append(f"Humidity: {current['humidity']}%")
+            if current.get('wind_kph'):
+                details.append(f"Wind: {current['wind_kph']} km/h")
+            if current.get('feelslike_c'):
+                details.append(f"Feels like: {current['feelslike_c']:.1f}°C")
+            
+            for detail in details:
+                if font_small:
+                    draw.text((10, y_pos), detail, fill='black', font=font_small)
+                else:
+                    draw.text((10, y_pos), detail, fill='black')
+                y_pos += 20
+            
+            return img
+            
+        except Exception as e:
+            self.logger.error(f"Error generating fallback display: {e}")
+            return None
     
     def _generate_html_content(self) -> str:
         """Generate HTML content with weather data."""
