@@ -327,7 +327,7 @@
                 const forecastIcon = getWeatherIcon(day.weather_code, 'medium');
                 let iconHtml;
                 if (forecastIcon.startsWith('data:image/')) {
-                    iconHtml = `<img src="${forecastIcon}" alt="Weather icon" style="width: 40px; height: 40px; object-fit: contain;">`;
+                    iconHtml = `<img src="${forecastIcon}" alt="Weather icon" style="width: 48px; height: 48px; object-fit: contain;">`;
                 } else if (forecastIcon.startsWith('fas ')) {
                     iconHtml = `<i class="${forecastIcon}"></i>`;
                 } else {
