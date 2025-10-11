@@ -95,7 +95,7 @@ class TumblrRSSMode:
                                 'post_link': item.find('link').text if item.find('link') is not None else '',
                                 'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
                             })
-                            self.logger.debug(f"Found image URL: {img_url}")
+                            self.logger.debug(f"Found image from post: {item.find('title').text if item.find('title') is not None else 'Untitled'}")
             
             if new_images:
                 # Remove duplicates while preserving order
@@ -160,7 +160,7 @@ class TumblrRSSMode:
                 return img, bg_color
             
             # Download image
-            self.logger.debug(f"Downloading image: {image_url}")
+            self.logger.debug(f"Downloading image from cache or URL")
             response = requests.get(image_url, timeout=30)
             response.raise_for_status()
             
@@ -190,7 +190,7 @@ class TumblrRSSMode:
             return img, bg_color
             
         except Exception as e:
-            self.logger.error(f"Failed to download image {image_url}: {e}")
+            self.logger.error(f"Failed to download image: {e}")
             return None
     
     def _get_next_image(self) -> Optional[Dict[str, Any]]:
@@ -325,12 +325,12 @@ class TumblrRSSMode:
                 self.logger.warning("No images available")
                 return
             
-            self.logger.info(f"Displaying RSS image: {image_data['url']}")
+            self.logger.info(f"Displaying RSS image: {image_data['post_title']}")
             
             # Download and process the image
             result = self._download_image(image_data['url'])
             if result is None:
-                self.logger.error(f"Failed to download image: {image_data['url']}")
+                self.logger.error(f"Failed to download image: {image_data['post_title']}")
                 return
             
             img, bg_color = result

@@ -132,10 +132,10 @@ class DeviantArtRSSMode:
                                 'post_link': item.find('link').text if item.find('link') is not None else '',
                                 'timestamp': self._parse_rss_date(item.find('pubDate').text) if item.find('pubDate') is not None else 0
                             })
-                            self.logger.info(f"Found valid DeviantArt image URL from media:content: {img_url}")
+                            self.logger.info(f"Found valid DeviantArt image from post: {item.find('title').text if item.find('title') is not None else 'Untitled'}")
                             break  # Use the first valid media:content URL
                         else:
-                            self.logger.debug(f"Skipped invalid DeviantArt image URL from media:content: {img_url}")
+                            self.logger.debug(f"Skipped invalid DeviantArt image from media:content")
                             
                 except Exception as e:
                     self.logger.debug(f"Error processing item for media:content: {e}")
@@ -228,7 +228,7 @@ class DeviantArtRSSMode:
                 return img, bg_color
             
             # Download image
-            self.logger.debug(f"Downloading DeviantArt image: {image_url}")
+            self.logger.debug(f"Downloading DeviantArt image from cache or URL")
             response = requests.get(image_url, timeout=30)
             response.raise_for_status()
             
@@ -258,7 +258,7 @@ class DeviantArtRSSMode:
             return img, bg_color
             
         except Exception as e:
-            self.logger.error(f"Failed to download DeviantArt image {image_url}: {e}")
+            self.logger.error(f"Failed to download DeviantArt image: {e}")
             return None
     
     def _get_next_image(self) -> Optional[Dict[str, Any]]:
@@ -393,12 +393,12 @@ class DeviantArtRSSMode:
                 self.logger.warning("No DeviantArt images available")
                 return
             
-            self.logger.info(f"Displaying DeviantArt RSS image: {image_data['url']}")
+            self.logger.info(f"Displaying DeviantArt image: {image_data['post_title']}")
             
             # Download and process the image
             result = self._download_image(image_data['url'])
             if result is None:
-                self.logger.error(f"Failed to download DeviantArt image: {image_data['url']}")
+                self.logger.error(f"Failed to download DeviantArt image: {image_data['post_title']}")
                 return
             
             img, bg_color = result
