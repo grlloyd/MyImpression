@@ -29,6 +29,7 @@ from modules.news_feed import NewsFeedMode
 from modules.tumblr_rss import TumblrRSSMode
 from modules.deviantart_rss import DeviantArtRSSMode
 from modules.weather_html import WeatherHTMLMode
+from modules.twonks_comic import TwonksComicMode
 from modules.display_utils import DisplayUtils
 
 
@@ -67,7 +68,8 @@ class MyImpressionApp:
             "tumblr_rss": TumblrRSSMode(self.inky, self.config, self.display_utils, self),
             "deviantart_rss": DeviantArtRSSMode(self.inky, self.config, self.display_utils, self),
             "news_feed": NewsFeedMode(self.inky, self.config, self.display_utils, self),
-            "weather_html": WeatherHTMLMode(self.inky, self.config, self.display_utils, self)
+            "weather_html": WeatherHTMLMode(self.inky, self.config, self.display_utils, self),
+            "twonks_comic": TwonksComicMode(self.inky, self.config, self.display_utils, self)
         }
         
         
@@ -117,7 +119,7 @@ class MyImpressionApp:
                 "button_1": "photo_cycle",
                 "button_2": "tumblr_rss", 
                 "button_3": "deviantart_rss",
-                "button_4": "weather_html"
+                "button_4": "twonks_comic"
             },
             "photo_cycle": {
                 "folder": "./data/photos",
@@ -160,6 +162,16 @@ class MyImpressionApp:
                 "custom_icon_path": "assets/icons/weather/",
                 "update_interval": 1800,
                 "saturation": 0.5
+            },
+            "twonks_comic": {
+                "rss_url": "https://fetchrss.com/feed/aPqdPwCxq2JyaPqdK5gClBE1.rss",
+                "display_time": 20,
+                "max_posts": 10,
+                "update_interval": 3600,
+                "background_color": "white",
+                "saturation": 0.8,
+                "fill_screen": True,
+                "auto_rotate": False
             }
         }
     
@@ -230,7 +242,8 @@ class MyImpressionApp:
             "photo_cycle": 1,    # 1 flash
             "tumblr_rss": 2,     # 2 flashes
             "deviantart_rss": 3, # 3 flashes
-            "weather_html": 4    # 4 flashes
+            "weather_html": 4,   # 4 flashes
+            "twonks_comic": 5    # 5 flashes
         }
         
         flash_count = mode_patterns.get(mode_name, 1)
